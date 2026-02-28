@@ -1,0 +1,41 @@
+{
+    "name": "bader/content-publisher",
+    "description": "A pluggable Laravel package for AI-powered content processing and multi-channel publishing (Blogger, WordPress, Facebook, Telegram, and more).",
+    "keywords": [
+        "laravel",
+        "publishing",
+        "ai",
+        "blogger",
+        "wordpress",
+        "content",
+        "pipeline"
+    ],
+    "license": "MIT",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/pipeline": "^11.0|^12.0",
+        "illuminate/http": "^11.0|^12.0",
+        "illuminate/queue": "^11.0|^12.0",
+        "illuminate/console": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bader\\ContentPublisher\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Bader\\ContentPublisher\\ContentPublisherServiceProvider"
+            ],
+            "aliases": {
+                "Publisher": "Bader\\ContentPublisher\\Facades\\Publisher",
+                "ContentPipeline": "Bader\\ContentPublisher\\Facades\\ContentPipeline"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

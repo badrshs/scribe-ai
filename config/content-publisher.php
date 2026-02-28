@@ -1,0 +1,181 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Publisher Channel
+    |--------------------------------------------------------------------------
+    |
+    | The default channel used when publishing content. Each channel maps
+    | to a driver configuration below. Use 'log' for development.
+    |
+    */
+
+    'default' => env('PUBLISHER_DEFAULT_CHANNEL', 'log'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Active Channels
+    |--------------------------------------------------------------------------
+    |
+    | Channels that will be used when calling publishToChannels().
+    | Only channels listed here will receive published content.
+    |
+    */
+
+    'channels' => explode(',', env('PUBLISHER_CHANNELS', 'log')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Publisher Drivers
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for each publisher driver. Add new drivers by creating
+    | a class implementing the Publisher contract and registering it
+    | via PublisherManager::extend().
+    |
+    */
+
+    'drivers' => [
+
+        'log' => [
+            'driver' => 'log',
+            'level' => 'info',
+            'channel' => null,
+        ],
+
+        'facebook' => [
+            'driver' => 'facebook',
+            'page_id' => env('FACEBOOK_PAGE_ID'),
+            'access_token' => env('FACEBOOK_PAGE_ACCESS_TOKEN'),
+            'api_version' => env('FACEBOOK_API_VERSION', 'v21.0'),
+            'timeout' => (int) env('FACEBOOK_TIMEOUT', 25),
+            'retries' => (int) env('FACEBOOK_RETRIES', 2),
+        ],
+
+        'telegram' => [
+            'driver' => 'telegram',
+            'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+            'chat_id' => env('TELEGRAM_CHAT_ID'),
+            'parse_mode' => env('TELEGRAM_PARSE_MODE', 'HTML'),
+        ],
+
+        'blogger' => [
+            'driver' => 'blogger',
+            'blog_id' => env('BLOGGER_BLOG_ID'),
+            'api_key' => env('BLOGGER_API_KEY'),
+            'credentials_path' => env('GOOGLE_APPLICATION_CREDENTIALS'),
+        ],
+
+        'wordpress' => [
+            'driver' => 'wordpress',
+            'url' => env('WORDPRESS_URL'),
+            'username' => env('WORDPRESS_USERNAME'),
+            'password' => env('WORDPRESS_PASSWORD'),
+            'default_status' => env('WORDPRESS_DEFAULT_STATUS', 'publish'),
+            'timeout' => (int) env('WORDPRESS_TIMEOUT', 30),
+        ],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Configuration
+    |--------------------------------------------------------------------------
+    |
+    | OpenAI service configuration for content rewriting, SEO suggestions,
+    | and image generation. Model fallback ensures resilience.
+    |
+    */
+
+    'ai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'content_model' => env('OPENAI_CONTENT_MODEL', 'gpt-4o-mini'),
+        'fallback_model' => env('OPENAI_FALLBACK_MODEL', 'gpt-4o-mini'),
+        'image_model' => env('OPENAI_IMAGE_MODEL', 'dall-e-3'),
+        'image_size' => env('OPENAI_IMAGE_SIZE', '1024x1024'),
+        'image_quality' => env('OPENAI_IMAGE_QUALITY', 'standard'),
+        'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 2000),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Content Pipeline
+    |--------------------------------------------------------------------------
+    |
+    | Ordered list of pipeline stages that content flows through.
+    | Each stage must implement handle(ContentPayload, Closure): mixed.
+    | Add, remove, or reorder stages to customize the processing flow.
+    |
+    */
+
+    'pipeline' => [
+        'stages' => [
+            Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
+            Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
+            Bader\ContentPublisher\Services\Pipeline\Stages\GenerateImageStage::class,
+            Bader\ContentPublisher\Services\Pipeline\Stages\OptimizeImageStage::class,
+            Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
+            Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Image Processing
+    |--------------------------------------------------------------------------
+    |
+    | Settings for image optimization and storage.
+    |
+    */
+
+    'images' => [
+        'max_width' => (int) env('IMAGE_MAX_WIDTH', 1600),
+        'quality' => (int) env('IMAGE_QUALITY', 82),
+        'format' => 'webp',
+        'min_size_for_conversion' => 20480,
+        'directory' => 'articles',
+        'disk' => 'public',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Source Fetching
+    |--------------------------------------------------------------------------
+    |
+    | Settings for content source drivers (XML feeds, web scraping, etc.).
+    |
+    */
+
+    'sources' => [
+        'default' => env('SOURCE_DEFAULT_DRIVER', 'xml'),
+
+        'drivers' => [
+            'xml' => [
+                'max_content_length' => 8000,
+                'cache_ttl' => 3600,
+            ],
+            'web' => [
+                'timeout' => 30,
+                'user_agent' => 'Mozilla/5.0 (compatible; ContentBot/1.0)',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queue Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Queue names for different job types. Separate queues enable
+    | independent scaling and prioritization.
+    |
+    */
+
+    'queue' => [
+        'pipeline' => env('PIPELINE_QUEUE', 'pipeline'),
+        'publishing' => env('PUBLISHING_QUEUE', 'publishing'),
+    ],
+
+];

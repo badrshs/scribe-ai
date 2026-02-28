@@ -1,0 +1,99 @@
+<?php
+
+namespace Bader\ContentPublisher\Services\Ai;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+
+/**
+ * Generates images using AI providers (OpenAI DALL-E, etc.).
+ */
+class ImageGenerator
+{
+    /**
+     * Generate an image from a prompt and store it on disk.
+     *
+     * @return string Relative path to stored image
+     */
+    public function generate(string $prompt, ?string $model = null, ?string $size = null, ?string $quality = null): string
+    {
+        $model ??= config('content-publisher.ai.image_model', 'dall-e-3');
+        $size ??= config('content-publisher.ai.image_size', '1024x1024');
+        $quality ??= config('content-publisher.ai.image_quality', 'standard');
+
+        Log::info('Generating AI image', compact('model', 'size', 'quality'));
+
+        $imageData = $this->requestImage($prompt, $model, $size, $quality);
+
+        return $this->storeImage($imageData);
+    }
+
+    /**
+     * @return string Raw image binary data
+     */
+    protected function requestImage(string $prompt, string $model, string $size, string $quality): string
+    {
+        $payload = [
+            'model' => $model,
+            'prompt' => $prompt,
+            'n' => 1,
+            'size' => $size,
+            'quality' => $quality,
+        ];
+
+        if (in_array($model, ['dall-e-2', 'dall-e-3'])) {
+            $payload['response_format'] = 'b64_json';
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . config('content-publisher.ai.api_key'),
+            'Content-Type' => 'application/json',
+        ])
+            ->timeout(120)
+            ->post('https://api.openai.com/v1/images/generations', $payload);
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                "Image generation API error [{$response->status()}]: " . $response->body()
+            );
+        }
+
+        $data = $response->json('data.0');
+
+        if (isset($data['b64_json'])) {
+            return base64_decode($data['b64_json']);
+        }
+
+        if (isset($data['url'])) {
+            return $this->downloadImage($data['url']);
+        }
+
+        throw new RuntimeException('No image data in API response');
+    }
+
+    protected function downloadImage(string $url): string
+    {
+        $response = Http::timeout(60)->get($url);
+
+        if ($response->failed()) {
+            throw new RuntimeException("Failed to download generated image from: {$url}");
+        }
+
+        return $response->body();
+    }
+
+    protected function storeImage(string $imageData): string
+    {
+        $directory = config('content-publisher.images.directory', 'articles');
+        $disk = config('content-publisher.images.disk', 'public');
+        $filename = $directory . '/' . uniqid('ai-') . '.png';
+
+        Storage::disk($disk)->put($filename, $imageData);
+
+        Log::info('AI image stored', ['path' => $filename]);
+
+        return $filename;
+    }
+}
