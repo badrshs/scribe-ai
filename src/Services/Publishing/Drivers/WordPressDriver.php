@@ -197,7 +197,7 @@ class WordPressDriver implements Publisher
      */
     protected function uploadFeaturedImage(Article $article): ?int
     {
-        $disk = config('content-publisher.images.disk', 'public');
+        $disk = config('scribe-ai.images.disk', 'public');
         $fullPath = Storage::disk($disk)->path($article->featured_image);
 
         if (! file_exists($fullPath)) {

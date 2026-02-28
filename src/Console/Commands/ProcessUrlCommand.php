@@ -12,11 +12,11 @@ use Illuminate\Console\Command;
  */
 class ProcessUrlCommand extends Command
 {
-    protected $signature = 'content:process-url
+    protected $signature = 'scribe:process-url
         {url : The URL to fetch and process}
         {--sync : Process synchronously instead of dispatching a job}';
 
-    protected $description = 'Process a URL through the content pipeline';
+    protected $description = 'Process a URL through the Scribe AI content pipeline';
 
     public function handle(): int
     {

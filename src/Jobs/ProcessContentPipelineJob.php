@@ -33,7 +33,7 @@ class ProcessContentPipelineJob implements ShouldQueue
         protected ?int $stagedContentId = null,
         protected ?string $url = null,
     ) {
-        $this->onQueue(config('content-publisher.queue.pipeline', 'pipeline'));
+        $this->onQueue(config('scribe-ai.queue.pipeline', 'pipeline'));
     }
 
     /**

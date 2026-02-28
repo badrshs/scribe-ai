@@ -19,9 +19,9 @@ class ImageGenerator
      */
     public function generate(string $prompt, ?string $model = null, ?string $size = null, ?string $quality = null): string
     {
-        $model ??= config('content-publisher.ai.image_model', 'dall-e-3');
-        $size ??= config('content-publisher.ai.image_size', '1024x1024');
-        $quality ??= config('content-publisher.ai.image_quality', 'standard');
+        $model ??= config('scribe-ai.ai.image_model', 'dall-e-3');
+        $size ??= config('scribe-ai.ai.image_size', '1024x1024');
+        $quality ??= config('scribe-ai.ai.image_quality', 'standard');
 
         Log::info('Generating AI image', compact('model', 'size', 'quality'));
 
@@ -48,7 +48,7 @@ class ImageGenerator
         }
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('content-publisher.ai.api_key'),
+            'Authorization' => 'Bearer ' . config('scribe-ai.ai.api_key'),
             'Content-Type' => 'application/json',
         ])
             ->timeout(120)
@@ -86,8 +86,8 @@ class ImageGenerator
 
     protected function storeImage(string $imageData): string
     {
-        $directory = config('content-publisher.images.directory', 'articles');
-        $disk = config('content-publisher.images.disk', 'public');
+        $directory = config('scribe-ai.images.directory', 'articles');
+        $disk = config('scribe-ai.images.disk', 'public');
         $filename = $directory . '/' . uniqid('ai-') . '.png';
 
         Storage::disk($disk)->put($filename, $imageData);

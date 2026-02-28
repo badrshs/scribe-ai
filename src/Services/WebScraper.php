@@ -18,8 +18,8 @@ class WebScraper
      */
     public function fetch(string $url): string
     {
-        $timeout = (int) config('content-publisher.sources.drivers.web.timeout', 30);
-        $userAgent = config('content-publisher.sources.drivers.web.user_agent', 'Mozilla/5.0 (compatible; ContentBot/1.0)');
+        $timeout = (int) config('scribe-ai.sources.drivers.web.timeout', 30);
+        $userAgent = config('scribe-ai.sources.drivers.web.user_agent', 'Mozilla/5.0 (compatible; ContentBot/1.0)');
 
         $response = Http::withHeaders([
             'User-Agent' => $userAgent,

@@ -31,7 +31,7 @@ class PublishArticleJob implements ShouldQueue
         protected int $articleId,
         protected ?array $channels = null,
     ) {
-        $this->onQueue(config('content-publisher.queue.publishing', 'publishing'));
+        $this->onQueue(config('scribe-ai.queue.publishing', 'publishing'));
     }
 
     /**

@@ -17,10 +17,10 @@ class ImageOptimizer
      */
     public function optimizeAndStore(UploadedFile $file, ?string $directory = null, ?int $maxWidth = null, ?int $quality = null): string
     {
-        $directory ??= config('content-publisher.images.directory', 'articles');
-        $maxWidth ??= (int) config('content-publisher.images.max_width', 1600);
-        $quality ??= (int) config('content-publisher.images.quality', 82);
-        $disk = config('content-publisher.images.disk', 'public');
+        $directory ??= config('scribe-ai.images.directory', 'articles');
+        $maxWidth ??= (int) config('scribe-ai.images.max_width', 1600);
+        $quality ??= (int) config('scribe-ai.images.quality', 82);
+        $disk = config('scribe-ai.images.disk', 'public');
 
         $path = $file->store($directory, $disk);
         if (! $path) {
@@ -35,10 +35,10 @@ class ImageOptimizer
      */
     public function optimizeExisting(string $relativePath, ?int $maxWidth = null, ?int $quality = null, bool $replace = true): string
     {
-        $maxWidth ??= (int) config('content-publisher.images.max_width', 1600);
-        $quality ??= (int) config('content-publisher.images.quality', 82);
-        $disk = config('content-publisher.images.disk', 'public');
-        $minSize = (int) config('content-publisher.images.min_size_for_conversion', 20480);
+        $maxWidth ??= (int) config('scribe-ai.images.max_width', 1600);
+        $quality ??= (int) config('scribe-ai.images.quality', 82);
+        $disk = config('scribe-ai.images.disk', 'public');
+        $minSize = (int) config('scribe-ai.images.min_size_for_conversion', 20480);
 
         $fullPath = Storage::disk($disk)->path($relativePath);
         if (! file_exists($fullPath)) {

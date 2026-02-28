@@ -84,6 +84,6 @@ class ContentPipeline
             return $stages;
         }
 
-        return config('content-publisher.pipeline.stages', []);
+        return config('scribe-ai.pipeline.stages', []);
     }
 }

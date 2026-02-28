@@ -23,9 +23,9 @@ class AiService
      */
     public function chat(array $messages, ?string $model = null, int $maxTokens = 0, bool $jsonMode = false): array
     {
-        $primaryModel = $model ?? config('content-publisher.ai.content_model', 'gpt-4o-mini');
-        $fallbackModel = config('content-publisher.ai.fallback_model', 'gpt-4o-mini');
-        $maxTokens = $maxTokens ?: (int) config('content-publisher.ai.max_tokens', 2000);
+        $primaryModel = $model ?? config('scribe-ai.ai.content_model', 'gpt-4o-mini');
+        $fallbackModel = config('scribe-ai.ai.fallback_model', 'gpt-4o-mini');
+        $maxTokens = $maxTokens ?: (int) config('scribe-ai.ai.max_tokens', 2000);
 
         try {
             return $this->sendChatRequest($messages, $primaryModel, $maxTokens, $jsonMode);
@@ -90,7 +90,7 @@ class AiService
         }
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('content-publisher.ai.api_key'),
+            'Authorization' => 'Bearer ' . config('scribe-ai.ai.api_key'),
             'Content-Type' => 'application/json',
         ])
             ->timeout(120)

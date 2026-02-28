@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  */
 class PublishApprovedCommand extends Command
 {
-    protected $signature = 'content:publish-approved
+    protected $signature = 'scribe:publish-approved
         {--limit=1 : Maximum number of articles to publish}';
 
     protected $description = 'Publish approved staged content through the pipeline';

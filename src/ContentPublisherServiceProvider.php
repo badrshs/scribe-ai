@@ -20,8 +20,8 @@ class ContentPublisherServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/content-publisher.php',
-            'content-publisher',
+            __DIR__ . '/../config/scribe-ai.php',
+            'scribe-ai'
         );
 
         $this->app->singleton(PublisherManager::class);
@@ -34,20 +34,20 @@ class ContentPublisherServiceProvider extends ServiceProvider
         $this->app->singleton(SeoSuggester::class, fn($app) => new SeoSuggester($app->make(AiService::class)));
         $this->app->singleton(ImageGenerator::class);
 
-        $this->app->alias(PublisherManager::class, 'content-publisher');
-        $this->app->alias(ContentPipeline::class, 'content-pipeline');
+        $this->app->alias(PublisherManager::class, 'scribe-ai');
+        $this->app->alias(ContentPipeline::class, 'scribe-pipeline');
     }
 
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/content-publisher.php' => config_path('content-publisher.php'),
-            ], 'content-publisher-config');
+                __DIR__ . '/../config/scribe-ai.php' => config_path('scribe-ai.php'),
+            ], 'scribe-ai-config');
 
             $this->publishes([
                 __DIR__ . '/../database/migrations' => database_path('migrations'),
-            ], 'content-publisher-migrations');
+            ], 'scribe-ai-migrations');
 
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 

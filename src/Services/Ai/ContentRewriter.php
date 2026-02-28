@@ -24,7 +24,7 @@ class ContentRewriter
         $result = $this->ai->complete(
             systemPrompt: 'You are a professional content editor. Follow the instruction precisely. Output only the rewritten content, nothing else.',
             userPrompt: $prompt,
-            maxTokens: (int) config('content-publisher.ai.max_tokens', 2000),
+            maxTokens: (int) config('scribe-ai.ai.max_tokens', 2000),
         );
 
         $this->validateOutput($result, $original, $instruction);

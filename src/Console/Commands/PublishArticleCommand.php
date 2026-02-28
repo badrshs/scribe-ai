@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
  */
 class PublishArticleCommand extends Command
 {
-    protected $signature = 'content:publish
+    protected $signature = 'scribe:publish
         {article : Article ID to publish}
         {--channels= : Comma-separated channel names (default: all active)}';
 

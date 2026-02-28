@@ -53,7 +53,7 @@ class PublisherManager
      */
     public function publishToChannels(Article $article, ?array $channels = null): array
     {
-        $channels ??= config('content-publisher.channels', ['log']);
+        $channels ??= config('scribe-ai.channels', ['log']);
         $results = [];
 
         foreach ($channels as $channel) {
@@ -115,7 +115,7 @@ class PublisherManager
      */
     public function availableDrivers(): array
     {
-        $configured = array_keys(config('content-publisher.drivers', []));
+        $configured = array_keys(config('scribe-ai.drivers', []));
         $custom = array_keys($this->customCreators);
 
         return array_unique(array_merge($configured, $custom));
@@ -123,12 +123,12 @@ class PublisherManager
 
     public function getDefaultDriver(): string
     {
-        return config('content-publisher.default', 'log');
+        return config('scribe-ai.default', 'log');
     }
 
     protected function resolve(string $name): Publisher
     {
-        $config = config("content-publisher.drivers.{$name}", []);
+        $config = config("scribe-ai.drivers.{$name}", []);
 
         if (isset($this->customCreators[$name])) {
             return ($this->customCreators[$name])($config);

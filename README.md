@@ -63,8 +63,8 @@ composer require badrshs/scribe-ai
 Publish the config and migrations:
 
 ```bash
-php artisan vendor:publish --tag=content-publisher-config
-php artisan vendor:publish --tag=content-publisher-migrations
+php artisan vendor:publish --tag=scribe-ai-config
+php artisan vendor:publish --tag=scribe-ai-migrations
 php artisan migrate
 ```
 
@@ -103,21 +103,21 @@ WORDPRESS_PASSWORD=
 ### Process a URL through the pipeline
 
 ```bash
-php artisan content:process-url https://example.com/article
-php artisan content:process-url https://example.com/article --sync
+php artisan scribe:process-url https://example.com/article
+php artisan scribe:process-url https://example.com/article --sync
 ```
 
 ### Publish an article
 
 ```bash
-php artisan content:publish 1
-php artisan content:publish 1 --channels=facebook,telegram
+php artisan scribe:publish 1
+php artisan scribe:publish 1 --channels=facebook,telegram
 ```
 
 ### Publish approved staged content
 
 ```bash
-php artisan content:publish-approved --limit=5
+php artisan scribe:publish-approved --limit=5
 ```
 
 ### Programmatic usage
