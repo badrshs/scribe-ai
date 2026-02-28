@@ -15,6 +15,7 @@ class ContentPayload
 {
     public function __construct(
         public readonly ?string $sourceUrl = null,
+        public readonly ?string $sourceDriver = null,
         public readonly ?string $rawContent = null,
         public readonly ?string $cleanedContent = null,
         public readonly ?string $title = null,
@@ -53,6 +54,7 @@ class ContentPayload
     {
         return [
             'sourceUrl' => $this->sourceUrl,
+            'sourceDriver' => $this->sourceDriver,
             'rawContent' => $this->rawContent,
             'cleanedContent' => $this->cleanedContent,
             'title' => $this->title,
@@ -110,6 +112,7 @@ class ContentPayload
     {
         return [
             'sourceUrl' => $this->sourceUrl,
+            'sourceDriver' => $this->sourceDriver,
             'rawContent' => $this->rawContent,
             'cleanedContent' => $this->cleanedContent,
             'title' => $this->title,
@@ -149,6 +152,7 @@ class ContentPayload
 
         return new static(
             sourceUrl: $snapshot['sourceUrl'] ?? null,
+            sourceDriver: $snapshot['sourceDriver'] ?? null,
             rawContent: $snapshot['rawContent'] ?? null,
             cleanedContent: $snapshot['cleanedContent'] ?? null,
             title: $snapshot['title'] ?? null,

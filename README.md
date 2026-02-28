@@ -26,6 +26,7 @@ Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover ima
   - [Custom Pipeline Stages](#custom-pipeline-stages)
   - [Custom Publish Drivers](#custom-publish-drivers)
 - [Categories](#categories)
+- [Content Sources (Input Drivers)](#content-sources-input-drivers)
 - [Run Tracking & Resume](#run-tracking--resume)
 - [Image Optimization](#image-optimization)
 - [Built-in Publish Drivers](#built-in-publish-drivers)
@@ -101,6 +102,11 @@ AI_OUTPUT_LANGUAGE=English              # language for AI-written articles
 PIPELINE_HALT_ON_ERROR=true             # stop on stage failure (default)
 PIPELINE_TRACK_RUNS=true                # persist each run for resume support
 
+# -- Content Sources -----------------------------------
+CONTENT_SOURCE_DRIVER=web               # default input driver (web, rss, text)
+WEB_SCRAPER_TIMEOUT=30
+RSS_MAX_ITEMS=10
+
 # -- Image ---------------------------------------------
 IMAGE_OPTIMIZE=true                     # set false to skip WebP conversion
 
@@ -141,6 +147,9 @@ php artisan scribe:process-url https://example.com/article --sync
 
 # Pass categories inline (id:name pairs)
 php artisan scribe:process-url https://example.com/article --sync --categories="1:Tech,2:Health,3:Business"
+
+# Force a specific source driver (auto-detected by default)
+php artisan scribe:process-url https://blog.com/feed.xml --sync --source=rss
 
 # Suppress progress output
 php artisan scribe:process-url https://example.com/article --sync --silent
@@ -290,6 +299,121 @@ app(Pipeline::class)->process($payload);
 
 ---
 
+## Content Sources (Input Drivers)
+
+The **input** side of the pipeline uses the same extensible driver pattern as publishing. `ContentSourceManager` resolves a content-source driver for each identifier (URL, feed, raw text) — either by **auto-detection** or by explicit override.
+
+```
+Input:      ContentSourceManager  → web, rss, text, your custom drivers
+Processing: ContentPipeline       → scrape, rewrite, image, publish, ...
+Output:     PublisherManager      → log, telegram, facebook, ...
+```
+
+### Built-in source drivers
+
+| Driver | Identifier | What it does |
+|--------|-----------|-------------|
+| `web` | Any HTTP(S) URL | Scrapes and cleans the HTML content |
+| `rss` | Feed URL (`.xml`, `.rss`, `/feed`) | Parses RSS 2.0 / Atom, returns latest entry |
+| `text` | Any non-URL string | Passes raw text straight through (no network call) |
+
+### Auto-detection vs explicit override
+
+By default the manager iterates drivers in order (`rss → web → text`) and picks the first one whose `supports()` returns true. You can force a specific driver instead:
+
+**CLI:**
+```bash
+# Auto-detect (URL → web driver)
+php artisan scribe:process-url https://example.com/article --sync
+
+# Force RSS driver
+php artisan scribe:process-url https://blog.com/feed.xml --sync --source=rss
+
+# Force text driver (pipe content in via payload)
+```
+
+**Programmatic:**
+```php
+use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+
+// Auto-detect
+$payload = ContentPayload::fromUrl('https://blog.com/feed.xml');
+app(ContentPipeline::class)->process($payload);
+
+// Force a specific driver
+$payload = new ContentPayload(
+    sourceUrl: 'https://blog.com/feed.xml',
+    sourceDriver: 'rss',
+);
+app(ContentPipeline::class)->process($payload);
+```
+
+**Fetch content without the pipeline:**
+```php
+use Bader\ContentPublisher\Facades\ContentSource;
+
+// Auto-detect
+$result = ContentSource::fetch('https://example.com/article');
+// $result = ['content' => '...', 'title' => '...', 'meta' => [...]]
+
+// Force driver
+$result = ContentSource::driver('rss')->fetch('https://blog.com/feed.xml');
+```
+
+### Registering custom source drivers
+
+Create a class implementing `Bader\ContentPublisher\Contracts\ContentSource`:
+
+```php
+use Bader\ContentPublisher\Contracts\ContentSource;
+
+class YouTubeTranscriptSource implements ContentSource
+{
+    public function __construct(protected array $config = []) {}
+
+    public function fetch(string $identifier): array
+    {
+        // Fetch transcript from YouTube API...
+        return ['content' => $transcript, 'title' => $videoTitle, 'meta' => [...]];
+    }
+
+    public function supports(string $identifier): bool
+    {
+        return str_contains($identifier, 'youtube.com') || str_contains($identifier, 'youtu.be');
+    }
+
+    public function name(): string
+    {
+        return 'youtube';
+    }
+}
+```
+
+Register it in a service provider:
+```php
+use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
+
+app(ContentSourceManager::class)->extend('youtube', fn(array $config) => new YouTubeTranscriptSource($config));
+```
+
+### Configuration
+
+```env
+# Default source driver (used when no auto-detection match)
+CONTENT_SOURCE_DRIVER=web
+
+# Web driver settings
+WEB_SCRAPER_TIMEOUT=30
+WEB_SCRAPER_USER_AGENT="Mozilla/5.0 (compatible; ContentBot/1.0)"
+
+# RSS driver settings
+RSS_TIMEOUT=30
+RSS_MAX_ITEMS=10
+```
+
+---
+
 ## Run Tracking & Resume
 
 Every pipeline execution is automatically persisted to the `pipeline_runs` table, giving you full visibility into what ran, what failed, and the ability to **resume from the exact stage that failed**.
@@ -382,22 +506,32 @@ When disabled, the `OptimizeImageStage` is silently skipped and the original ima
 
 ```
 +-------------------------------------------------------------------+
+|                     ContentSourceManager                           |
+|                                                                    |
+|  identifier --> auto-detect / forced driver                        |
+|  driver('web')  --> WebDriver::fetch()                             |
+|  driver('rss')  --> RssDriver::fetch()                             |
+|  driver('text') --> TextDriver::fetch()                            |
++-------------------------------------------------------------------+
+                          |
+                          v
++-------------------------------------------------------------------+
 |                        ContentPipeline                             |
-|                                                                   |
+|                                                                    |
 |  ContentPayload --> Stage 1 --> Stage 2 --> ... --> Stage N        |
 |       (DTO)         Scrape     Rewrite          Publish            |
-|                                                                   |
+|                                                                    |
 |  Each stage tracked in PipelineRun (DB)                            |
 |  Failed? → snapshot saved → resume from that stage                 |
 +-------------------------------------------------------------------+
-                                                       |
-                                                       v
+                          |
+                          v
 +-------------------------------------------------------------------+
 |                       PublisherManager                             |
-|                                                                   |
+|                                                                    |
 |  driver('facebook') --> FacebookDriver::publish()                  |
 |  driver('telegram') --> TelegramDriver::publish()                  |
-|                                                                   |
+|                                                                    |
 |  Each result --> PublishResult DTO --> publish_logs table           |
 +-------------------------------------------------------------------+
 ```
@@ -406,11 +540,12 @@ When disabled, the `OptimizeImageStage` is silently skipped and the original ima
 
 | Class | Role |
 |-------|------|
+| `ContentSourceManager` | Resolves input drivers (web, rss, text, custom). Auto-detects or uses explicit override. |
 | `ContentPayload` | Immutable DTO carrying state between stages. Supports `toSnapshot()` / `fromSnapshot()` for JSON serialisation. |
 | `ContentPipeline` | Runs stages in sequence, tracks each step in a `PipelineRun`, supports resume from failure. |
 | `PipelineRun` | Eloquent model persisting run state, stage progress, and payload snapshots to `pipeline_runs`. |
-| `PublisherManager` | Resolves and dispatches to channel drivers |
-| `PublishResult` | Per-channel outcome DTO, auto-persisted to `publish_logs` |
+| `PublisherManager` | Resolves and dispatches to channel publish drivers. |
+| `PublishResult` | Per-channel outcome DTO, auto-persisted to `publish_logs`. |
 
 ---
 

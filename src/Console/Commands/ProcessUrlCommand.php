@@ -16,6 +16,7 @@ class ProcessUrlCommand extends Command
         {url : The URL to fetch and process}
         {--sync : Process synchronously instead of dispatching a job}
         {--silent : Suppress progress output}
+        {--source= : Force a specific content-source driver (web, rss, text)}
         {--categories= : Comma-separated id:name pairs (e.g. "1:Tech,2:Health")}';
 
     protected $description = 'Process a URL through the Scribe AI content pipeline';
@@ -24,12 +25,13 @@ class ProcessUrlCommand extends Command
     {
         $url = $this->argument('url');
         $categories = $this->parseCategories($this->option('categories'));
+        $source = $this->option('source');
 
         if ($this->option('sync')) {
-            return $this->processSync($url, $categories);
+            return $this->processSync($url, $categories, $source);
         }
 
-        ProcessContentPipelineJob::dispatch(url: $url, categories: $categories);
+        ProcessContentPipelineJob::dispatch(url: $url, categories: $categories, sourceDriver: $source);
 
         if (! $this->option('silent')) {
             $this->info("Pipeline job dispatched for: {$url}");
@@ -40,7 +42,7 @@ class ProcessUrlCommand extends Command
         return self::SUCCESS;
     }
 
-    protected function processSync(string $url, array $categories = []): int
+    protected function processSync(string $url, array $categories = [], ?string $source = null): int
     {
         $silent = $this->option('silent');
 
@@ -80,6 +82,10 @@ class ProcessUrlCommand extends Command
         }
 
         $payload = ContentPayload::fromUrl($url);
+
+        if ($source) {
+            $payload = $payload->with(['sourceDriver' => $source]);
+        }
 
         if (! empty($categories)) {
             $payload = $payload->with(['categories' => $categories]);

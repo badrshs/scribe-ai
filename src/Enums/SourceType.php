@@ -8,6 +8,7 @@ enum SourceType: string
     case Web = 'web';
     case Api = 'api';
     case Rss = 'rss';
+    case Text = 'text';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum SourceType: string
             self::Web => 'Web Scraper',
             self::Api => 'API Endpoint',
             self::Rss => 'RSS Feed',
+            self::Text => 'Raw Text',
         };
     }
 }

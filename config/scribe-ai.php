@@ -188,18 +188,34 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Content Sources
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for content-source drivers. Each driver fetches raw
+    | content from a different medium (web page, RSS feed, raw text, etc.).
+    |
+    | The pipeline auto-detects the right driver from the identifier,
+    | or you can force one via --source=rss / $payload->sourceDriver.
+    |
+    | Register custom drivers via ContentSourceManager::extend().
+    |
+    */
+
     'sources' => [
-        'default' => env('SOURCE_DEFAULT_DRIVER', 'xml'),
+        'default' => env('CONTENT_SOURCE_DRIVER', 'web'),
 
         'drivers' => [
-            'xml' => [
-                'max_content_length' => 8000,
-                'cache_ttl' => 3600,
-            ],
             'web' => [
-                'timeout' => 30,
-                'user_agent' => 'Mozilla/5.0 (compatible; ContentBot/1.0)',
+                'timeout' => (int) env('WEB_SCRAPER_TIMEOUT', 30),
+                'user_agent' => env('WEB_SCRAPER_USER_AGENT', 'Mozilla/5.0 (compatible; ContentBot/1.0)'),
             ],
+            'rss' => [
+                'timeout' => (int) env('RSS_TIMEOUT', 30),
+                'max_items' => (int) env('RSS_MAX_ITEMS', 10),
+            ],
+            'text' => [],
         ],
     ],
 

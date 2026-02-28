@@ -34,6 +34,7 @@ class ProcessContentPipelineJob implements ShouldQueue
         protected ?string $url = null,
         /** @var array<int, string> */
         protected array $categories = [],
+        protected ?string $sourceDriver = null,
     ) {
         $this->onQueue(config('scribe-ai.queue.pipeline', 'pipeline'));
     }
@@ -95,6 +96,10 @@ class ProcessContentPipelineJob implements ShouldQueue
 
             $payload = ContentPayload::fromStagedContent($staged);
 
+            if ($this->sourceDriver) {
+                $payload = $payload->with(['sourceDriver' => $this->sourceDriver]);
+            }
+
             return ! empty($this->categories)
                 ? $payload->with(['categories' => $this->categories])
                 : $payload;
@@ -102,6 +107,10 @@ class ProcessContentPipelineJob implements ShouldQueue
 
         if ($this->url) {
             $payload = ContentPayload::fromUrl($this->url);
+
+            if ($this->sourceDriver) {
+                $payload = $payload->with(['sourceDriver' => $this->sourceDriver]);
+            }
 
             return ! empty($this->categories)
                 ? $payload->with(['categories' => $this->categories])

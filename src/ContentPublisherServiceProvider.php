@@ -14,6 +14,7 @@ use Bader\ContentPublisher\Services\Ai\SeoSuggester;
 use Bader\ContentPublisher\Services\ImageOptimizer;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Bader\ContentPublisher\Services\Publishing\PublisherManager;
+use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
 use Bader\ContentPublisher\Services\WebScraper;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +28,7 @@ class ContentPublisherServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(PublisherManager::class);
+        $this->app->singleton(ContentSourceManager::class);
         $this->app->singleton(AiService::class);
         $this->app->singleton(ContentPipeline::class);
         $this->app->singleton(ImageOptimizer::class);
@@ -38,6 +40,7 @@ class ContentPublisherServiceProvider extends ServiceProvider
 
         $this->app->alias(PublisherManager::class, 'scribe-ai');
         $this->app->alias(ContentPipeline::class, 'scribe-pipeline');
+        $this->app->alias(ContentSourceManager::class, 'scribe-source');
     }
 
     public function boot(): void
