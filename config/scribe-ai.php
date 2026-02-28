@@ -97,6 +97,13 @@ return [
         'image_size' => env('OPENAI_IMAGE_SIZE', '1024x1024'),
         'image_quality' => env('OPENAI_IMAGE_QUALITY', 'standard'),
         'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 2000),
+
+        /*
+        | The language the AI should produce the rewritten article in.
+        | The system prompt itself is always in English; only the output changes.
+        | Examples: 'English', 'Arabic', 'French', 'Spanish', etc.
+        */
+        'output_language' => env('AI_OUTPUT_LANGUAGE', 'English'),
     ],
 
     /*
