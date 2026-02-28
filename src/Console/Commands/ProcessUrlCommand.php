@@ -66,10 +66,7 @@ class ProcessUrlCommand extends Command
                 } elseif ($stage === 'Pipeline') {
                     // Pipeline-level events are handled outside
                 } else {
-                    $icon = str_starts_with($status, 'completed') ? '<fg=green>✓</>' :
-                           (str_starts_with($status, 'skipped')   ? '<fg=yellow>⊘</>' :
-                           (str_starts_with($status, 'rejected')  ? '<fg=red>✗</>' :
-                           (str_starts_with($status, 'failed')    ? '<fg=red>✗</>' : '<fg=gray>•</>')));
+                    $icon = str_starts_with($status, 'completed') ? '<fg=green>✓</>' : (str_starts_with($status, 'skipped')   ? '<fg=yellow>⊘</>' : (str_starts_with($status, 'rejected')  ? '<fg=red>✗</>' : (str_starts_with($status, 'failed')    ? '<fg=red>✗</>' : '<fg=gray>•</>')));
 
                     $this->line("        {$icon} {$status}");
                 }
