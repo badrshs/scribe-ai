@@ -37,7 +37,7 @@ if ([string]::IsNullOrWhiteSpace($Branch)) {
 }
 
 # -- Validate remote -----------------------------
-$remote = git remote 2>$null
+$remote = (git remote 2>$null | Select-Object -First 1)
 if ([string]::IsNullOrWhiteSpace($remote)) {
     Write-Host "  No git remote configured. Add one with:" -ForegroundColor Red
     Write-Host "    git remote add origin <url>" -ForegroundColor Yellow
@@ -52,6 +52,7 @@ $lastTag = $null
 try { $lastTag = (git describe --tags --abbrev=0 2>&1) | Where-Object { $_ -notmatch 'fatal' } | Select-Object -First 1 } catch {}
 $nextTag = Get-NextVersion $lastTag
 
+Write-Host "  Remote:        " -NoNewline; Write-Host $remote -ForegroundColor Cyan
 Write-Host "  Branch:        " -NoNewline; Write-Host $Branch -ForegroundColor Cyan
 if ($lastTag) {
     Write-Host "  Last tag:      " -NoNewline; Write-Host $lastTag -ForegroundColor Yellow
@@ -126,15 +127,15 @@ Write-Host "  Tag created: $inputTag" -ForegroundColor Green
 # -- Stage 3: Push ----------------------------------
 Write-Banner "Stage 3: Push to Remote"
 
-Write-Host "  Pushing commits to $Branch..." -ForegroundColor DarkGray
-git push origin $Branch
+Write-Host "  Pushing commits to $remote/$Branch..." -ForegroundColor DarkGray
+git push $remote $Branch
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  Failed to push commits." -ForegroundColor Red
     exit 1
 }
 
 Write-Host "  Pushing tag $inputTag..." -ForegroundColor DarkGray
-git push origin $inputTag
+git push $remote $inputTag
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  Failed to push tag." -ForegroundColor Red
     exit 1
