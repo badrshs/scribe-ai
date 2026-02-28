@@ -96,7 +96,7 @@ return [
         'image_model' => env('OPENAI_IMAGE_MODEL', 'dall-e-3'),
         'image_size' => env('OPENAI_IMAGE_SIZE', '1024x1024'),
         'image_quality' => env('OPENAI_IMAGE_QUALITY', 'standard'),
-        'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 2000),
+        'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 4096),
 
         /*
         | The language the AI should produce the rewritten article in.

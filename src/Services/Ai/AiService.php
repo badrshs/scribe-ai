@@ -71,6 +71,11 @@ class AiService
 
         $raw = $response['choices'][0]['message']['content'] ?? '{}';
 
+        Log::debug('AiService: raw JSON response', [
+            'length' => mb_strlen($raw),
+            'preview' => mb_substr($raw, 0, 300),
+        ]);
+
         return $this->parseJson($raw);
     }
 
@@ -79,22 +84,40 @@ class AiService
      */
     protected function sendChatRequest(array $messages, string $model, int $maxTokens, bool $jsonMode): array
     {
+        $tokenParam = $this->maxTokensParam($model);
+
         $payload = [
             'model' => $model,
             'messages' => $messages,
-            $this->maxTokensParam($model) => $maxTokens,
+            $tokenParam => $maxTokens,
         ];
 
         if ($jsonMode) {
             $payload['response_format'] = ['type' => 'json_object'];
         }
 
+        Log::info('AiService: sending chat request', [
+            'model' => $model,
+            'token_param' => $tokenParam,
+            'max_tokens' => $maxTokens,
+            'json_mode' => $jsonMode,
+            'messages_count' => count($messages),
+            'system_prompt_length' => mb_strlen($messages[0]['content'] ?? ''),
+            'user_prompt_length' => mb_strlen($messages[1]['content'] ?? ''),
+        ]);
+
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . config('scribe-ai.ai.api_key'),
             'Content-Type' => 'application/json',
         ])
-            ->timeout(120)
+            ->timeout(180)
             ->post('https://api.openai.com/v1/chat/completions', $payload);
+
+        Log::info('AiService: response received', [
+            'model' => $model,
+            'status' => $response->status(),
+            'body_length' => mb_strlen($response->body()),
+        ]);
 
         if ($response->failed()) {
             throw new RuntimeException(
@@ -102,20 +125,40 @@ class AiService
             );
         }
 
-        return $response->json();
+        $json = $response->json();
+
+        $finishReason = $json['choices'][0]['finish_reason'] ?? 'unknown';
+        $usage = $json['usage'] ?? [];
+
+        Log::info('AiService: completion details', [
+            'model' => $model,
+            'finish_reason' => $finishReason,
+            'prompt_tokens' => $usage['prompt_tokens'] ?? null,
+            'completion_tokens' => $usage['completion_tokens'] ?? null,
+            'total_tokens' => $usage['total_tokens'] ?? null,
+        ]);
+
+        if ($finishReason === 'length') {
+            Log::warning('AiService: response was truncated (hit max tokens)', [
+                'model' => $model,
+                'max_tokens' => $maxTokens,
+            ]);
+        }
+
+        return $json;
     }
 
     /**
      * Determine the correct max-tokens parameter name for the given model.
      *
-     * Newer models (gpt-4o, gpt-5, o1, o3, etc.) require 'max_completion_tokens'.
-     * Legacy models (gpt-3.5, gpt-4-turbo, gpt-4 without -o) use 'max_tokens'.
+     * Only truly new model families (gpt-5, o1, o3) require 'max_completion_tokens'.
+     * The gpt-4o family supports both, so we keep using 'max_tokens' for compatibility.
      */
     protected function maxTokensParam(string $model): string
     {
-        $modern = preg_match('/gpt-4o|gpt-5|o1-|o3-|o1$|o3$/i', $model);
+        $requiresNew = preg_match('/^(gpt-5|o1|o3)/i', $model);
 
-        return $modern ? 'max_completion_tokens' : 'max_tokens';
+        return $requiresNew ? 'max_completion_tokens' : 'max_tokens';
     }
 
     /**
