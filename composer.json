@@ -1,5 +1,5 @@
 {
-    "name": "bader/content-publisher",
+    "name": "badrshs/scribe-ai",
     "description": "A pluggable Laravel package for AI-powered content processing and multi-channel publishing (Blogger, WordPress, Facebook, Telegram, and more).",
     "keywords": [
         "laravel",
@@ -10,8 +10,13 @@
         "content",
         "pipeline"
     ],
+    "homepage": "https://github.com/badrshs/scribe-ai",
     "license": "MIT",
     "type": "library",
+    "support": {
+        "issues": "https://github.com/badrshs/scribe-ai/issues",
+        "source": "https://github.com/badrshs/scribe-ai"
+    },
     "require": {
         "php": "^8.2",
         "illuminate/support": "^11.0|^12.0",

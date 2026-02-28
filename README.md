@@ -1,19 +1,24 @@
-# Content Publisher
+﻿# Scribe AI
+
+[![Latest Version](https://img.shields.io/github/v/tag/badrshs/scribe-ai?label=version)](https://github.com/badrshs/scribe-ai/releases)
+[![License](https://img.shields.io/github/license/badrshs/scribe-ai)](https://github.com/badrshs/scribe-ai/blob/master/LICENSE)
 
 A pluggable Laravel package for AI-powered content processing and multi-channel publishing.
 
+**GitHub:** https://github.com/badrshs/scribe-ai
+
 ## Features
 
-- **Pipeline Pattern** — Configurable content processing stages (scrape → AI rewrite → image generation → optimize → publish)
-- **Strategy Pattern** — Swappable publisher drivers (Facebook, Telegram, Blogger, WordPress, Log)
-- **Manager Pattern** — Runtime driver registration via `extend()`, just like Laravel's Cache/Queue
-- **AI Services** — OpenAI-powered content rewriting, SEO suggestions, and image generation
-- **Queue Support** — Background processing with configurable queues and overlap protection
+- **Pipeline Pattern** -- Configurable content processing stages (scrape -> AI rewrite -> image generation -> optimize -> publish)
+- **Strategy Pattern** -- Swappable publisher drivers (Facebook, Telegram, Blogger, WordPress, Log)
+- **Manager Pattern** -- Runtime driver registration via `extend()`, just like Laravel's Cache/Queue
+- **AI Services** -- OpenAI-powered content rewriting, SEO suggestions, and image generation
+- **Queue Support** -- Background processing with configurable queues and overlap protection
 
 ## Installation
 
 ```bash
-composer require bader/content-publisher
+composer require badrshs/scribe-ai
 ```
 
 Publish the config and migrations:
@@ -119,24 +124,24 @@ ContentPipeline::through([
 
 ```
 ContentPayload (DTO)
-    ↓
-ContentPipeline → [ScrapeStage → AiRewriteStage → GenerateImageStage → OptimizeImageStage → CreateArticleStage → PublishStage]
-    ↓
-PublisherManager → driver('facebook') → FacebookDriver::publish()
-    ↓
-PublishResult (DTO) → PublishLog (audit)
+    |
+ContentPipeline -> [ScrapeStage -> AiRewriteStage -> GenerateImageStage -> OptimizeImageStage -> CreateArticleStage -> PublishStage]
+    |
+PublisherManager -> driver('facebook') -> FacebookDriver::publish()
+    |
+PublishResult (DTO) -> PublishLog (audit)
 ```
 
 ## Built-in Drivers
 
-| Driver | Platform | Auth |
-|--------|----------|------|
-| `log` | Laravel Log | None |
-| `facebook` | Facebook Pages | Page Access Token |
-| `telegram` | Telegram Bot | Bot Token |
-| `blogger` | Google Blogger | OAuth2 Service Account |
-| `wordpress` | WordPress REST API | Application Passwords |
+| Driver    | Platform             | Auth                    |
+|-----------|----------------------|-------------------------|
+| `log`     | Laravel Log          | None                    |
+| `facebook`| Facebook Pages       | Page Access Token       |
+| `telegram`| Telegram Bot         | Bot Token               |
+| `blogger` | Google Blogger       | OAuth2 Service Account  |
+| `wordpress`| WordPress REST API  | Application Passwords   |
 
 ## License
 
-MIT
+MIT -- see [LICENSE](https://github.com/badrshs/scribe-ai/blob/master/LICENSE)
