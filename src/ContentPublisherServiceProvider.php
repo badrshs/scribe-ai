@@ -2,9 +2,11 @@
 
 namespace Bader\ContentPublisher;
 
+use Bader\ContentPublisher\Console\Commands\ListRunsCommand;
 use Bader\ContentPublisher\Console\Commands\ProcessUrlCommand;
 use Bader\ContentPublisher\Console\Commands\PublishApprovedCommand;
 use Bader\ContentPublisher\Console\Commands\PublishArticleCommand;
+use Bader\ContentPublisher\Console\Commands\ResumeRunCommand;
 use Bader\ContentPublisher\Services\Ai\AiService;
 use Bader\ContentPublisher\Services\Ai\ContentRewriter;
 use Bader\ContentPublisher\Services\Ai\ImageGenerator;
@@ -52,9 +54,11 @@ class ContentPublisherServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
             $this->commands([
-                PublishApprovedCommand::class,
+                ListRunsCommand::class,
                 ProcessUrlCommand::class,
+                PublishApprovedCommand::class,
                 PublishArticleCommand::class,
+                ResumeRunCommand::class,
             ]);
         }
     }

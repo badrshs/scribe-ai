@@ -149,6 +149,15 @@ return [
         | continue to the next stage (legacy behaviour).
         */
         'halt_on_error' => (bool) env('PIPELINE_HALT_ON_ERROR', true),
+
+        /*
+        | When true, each pipeline execution is persisted to the
+        | `pipeline_runs` table with payload snapshots, enabling
+        | resume on failure via `scribe:resume {id}`.
+        | Requires the pipeline_runs migration to be published and run.
+        | Set to false if you don't need run tracking.
+        */
+        'track_runs' => (bool) env('PIPELINE_TRACK_RUNS', true),
     ],
 
     /*

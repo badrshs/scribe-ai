@@ -98,4 +98,75 @@ class ContentPayload
     {
         return new static(sourceUrl: $url);
     }
+
+    /**
+     * Serialize the payload to a JSON-safe array (no Eloquent models).
+     *
+     * Used by PipelineRun to snapshot state for resume capability.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSnapshot(): array
+    {
+        return [
+            'sourceUrl' => $this->sourceUrl,
+            'rawContent' => $this->rawContent,
+            'cleanedContent' => $this->cleanedContent,
+            'title' => $this->title,
+            'content' => $this->content,
+            'description' => $this->description,
+            'slug' => $this->slug,
+            'metaTitle' => $this->metaTitle,
+            'metaDescription' => $this->metaDescription,
+            'imagePrompt' => $this->imagePrompt,
+            'imagePath' => $this->imagePath,
+            'categoryId' => $this->categoryId,
+            'categories' => $this->categories,
+            'tags' => $this->tags,
+            'rejected' => $this->rejected,
+            'rejectionReason' => $this->rejectionReason,
+            'extra' => $this->extra,
+            // Models are stored by ID for rehydration
+            'article_id' => $this->article?->id,
+            'staged_content_id' => $this->stagedContent?->id,
+        ];
+    }
+
+    /**
+     * Reconstruct a payload from a snapshot (as stored in pipeline_runs).
+     *
+     * @param  array<string, mixed>  $snapshot
+     */
+    public static function fromSnapshot(array $snapshot): static
+    {
+        $article = isset($snapshot['article_id'])
+            ? Article::query()->find($snapshot['article_id'])
+            : null;
+
+        $stagedContent = isset($snapshot['staged_content_id'])
+            ? StagedContent::query()->find($snapshot['staged_content_id'])
+            : null;
+
+        return new static(
+            sourceUrl: $snapshot['sourceUrl'] ?? null,
+            rawContent: $snapshot['rawContent'] ?? null,
+            cleanedContent: $snapshot['cleanedContent'] ?? null,
+            title: $snapshot['title'] ?? null,
+            content: $snapshot['content'] ?? null,
+            description: $snapshot['description'] ?? null,
+            slug: $snapshot['slug'] ?? null,
+            metaTitle: $snapshot['metaTitle'] ?? null,
+            metaDescription: $snapshot['metaDescription'] ?? null,
+            imagePrompt: $snapshot['imagePrompt'] ?? null,
+            imagePath: $snapshot['imagePath'] ?? null,
+            categoryId: $snapshot['categoryId'] ?? null,
+            categories: $snapshot['categories'] ?? [],
+            tags: $snapshot['tags'] ?? [],
+            article: $article,
+            stagedContent: $stagedContent,
+            rejected: $snapshot['rejected'] ?? false,
+            rejectionReason: $snapshot['rejectionReason'] ?? null,
+            extra: $snapshot['extra'] ?? [],
+        );
+    }
 }

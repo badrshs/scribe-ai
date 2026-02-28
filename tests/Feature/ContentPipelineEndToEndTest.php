@@ -3,8 +3,10 @@
 namespace Bader\ContentPublisher\Tests\Feature;
 
 use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Enums\PipelineRunStatus;
 use Bader\ContentPublisher\Models\Article;
 use Bader\ContentPublisher\Models\Category;
+use Bader\ContentPublisher\Models\PipelineRun;
 use Bader\ContentPublisher\Services\Ai\AiService;
 use Bader\ContentPublisher\Services\Ai\ImageGenerator;
 use Bader\ContentPublisher\Services\ImageOptimizer;
@@ -359,5 +361,173 @@ class ContentPipelineEndToEndTest extends TestCase
 
         $this->assertFalse($result->rejected);
         $this->assertEquals(10, $result->article->category_id);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Run Tracking & Resume Tests
+    // ──────────────────────────────────────────────────────────
+
+    public function test_pipeline_creates_run_record(): void
+    {
+        $this->seedCategories();
+        $this->bindMocks();
+
+        $pipeline = app(ContentPipeline::class);
+        $result = $pipeline->process(ContentPayload::fromUrl('https://example.com/tracked'));
+
+        $this->assertDatabaseHas('pipeline_runs', [
+            'source_url' => 'https://example.com/tracked',
+            'status' => 'completed',
+            'article_id' => $result->article->id,
+        ]);
+    }
+
+    public function test_pipeline_run_tracks_rejection_from_stage_error(): void
+    {
+        $this->seedCategories();
+        $this->bindMocks();
+
+        // Make image generator throw — stage catches it and rejects (halt_on_error)
+        $imageGen = Mockery::mock(ImageGenerator::class);
+        $imageGen->shouldReceive('generate')
+            ->andThrow(new \RuntimeException('GPU out of memory'));
+        $this->app->instance(ImageGenerator::class, $imageGen);
+
+        config(['scribe-ai.pipeline.halt_on_error' => true]);
+
+        $pipeline = app(ContentPipeline::class);
+        $result = $pipeline->process(ContentPayload::fromUrl('https://example.com/fail'));
+
+        $this->assertTrue($result->rejected);
+
+        $run = PipelineRun::query()->where('source_url', 'https://example.com/fail')->first();
+        $this->assertNotNull($run);
+        // Stage catches error internally and returns rejected → pipeline marks as "rejected"
+        $this->assertEquals(PipelineRunStatus::Rejected, $run->status);
+    }
+
+    public function test_pipeline_run_tracks_uncaught_failure(): void
+    {
+        $this->seedCategories();
+        $this->bindMocks();
+
+        // Use a custom stage that throws without catching
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->through([
+            \Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
+            \Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
+            FailingStageStub::class,
+        ]);
+
+        config(['scribe-ai.pipeline.halt_on_error' => true]);
+
+        $result = $pipeline->process(ContentPayload::fromUrl('https://example.com/uncaught'));
+
+        $this->assertTrue($result->rejected);
+
+        $run = PipelineRun::query()->where('source_url', 'https://example.com/uncaught')->first();
+        $this->assertNotNull($run);
+        $this->assertEquals(PipelineRunStatus::Failed, $run->status);
+        $this->assertEquals('FailingStub', $run->error_stage);
+        $this->assertTrue($run->isResumable());
+    }
+
+    public function test_failed_pipeline_run_can_be_resumed(): void
+    {
+        $this->seedCategories();
+        $this->bindMocks();
+
+        // First run: use a failing stage
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->through([
+            \Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
+            \Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
+            FailingStageStub::class,
+            \Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
+            \Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
+        ]);
+
+        config(['scribe-ai.pipeline.halt_on_error' => true]);
+
+        $pipeline->process(ContentPayload::fromUrl('https://example.com/resume-test'));
+
+        $run = PipelineRun::query()->where('source_url', 'https://example.com/resume-test')->first();
+        $this->assertTrue($run->isResumable());
+
+        // "Fix" the failing stage by replacing the stages list on the run with working stages
+        $run->update([
+            'stages' => [
+                \Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
+                \Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
+                // The failing stage is replaced with image generation (mocked to work)
+                \Bader\ContentPublisher\Services\Pipeline\Stages\GenerateImageStage::class,
+                \Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
+                \Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
+            ],
+        ]);
+
+        // Resume — should pick up from stage index 2 with the working stage
+        $pipeline2 = app(ContentPipeline::class);
+        $result = $pipeline2->resume($run);
+
+        $this->assertFalse($result->rejected);
+        $this->assertNotNull($result->article);
+
+        $run->refresh();
+        $this->assertEquals(PipelineRunStatus::Completed, $run->status);
+        $this->assertEquals($result->article->id, $run->article_id);
+    }
+
+    public function test_pipeline_tracking_disabled_via_config(): void
+    {
+        $this->seedCategories();
+        $this->bindMocks();
+
+        config(['scribe-ai.pipeline.track_runs' => false]);
+
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->process(ContentPayload::fromUrl('https://example.com/no-track'));
+
+        $this->assertDatabaseCount('pipeline_runs', 0);
+    }
+
+    public function test_pipeline_tracking_disabled_via_method(): void
+    {
+        $this->seedCategories();
+        $this->bindMocks();
+
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->withoutTracking()->process(ContentPayload::fromUrl('https://example.com/no-track-method'));
+
+        $this->assertDatabaseCount('pipeline_runs', 0);
+    }
+
+    public function test_completed_run_cannot_be_resumed(): void
+    {
+        $this->seedCategories();
+        $this->bindMocks();
+
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->process(ContentPayload::fromUrl('https://example.com/done'));
+
+        $run = PipelineRun::query()->first();
+        $this->assertFalse($run->isResumable());
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('not resumable');
+
+        $pipeline2 = app(ContentPipeline::class);
+        $pipeline2->resume($run);
+    }
+}
+
+/**
+ * A stub stage that always throws — used to test uncaught failure tracking.
+ */
+class FailingStageStub implements \Bader\ContentPublisher\Contracts\Pipe
+{
+    public function handle(ContentPayload $payload, \Closure $next): mixed
+    {
+        throw new \RuntimeException('Intentional uncaught stage failure');
     }
 }
