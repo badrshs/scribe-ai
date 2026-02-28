@@ -161,6 +161,7 @@ return [
     */
 
     'images' => [
+        'optimize' => (bool) env('IMAGE_OPTIMIZE', true),
         'max_width' => (int) env('IMAGE_MAX_WIDTH', 1600),
         'quality' => (int) env('IMAGE_QUALITY', 82),
         'format' => 'webp',

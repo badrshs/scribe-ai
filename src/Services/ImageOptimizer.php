@@ -86,7 +86,7 @@ class ImageOptimizer
             $newHeight = (int) round($height * ($maxWidth / $width));
             $resized = imagecreatetruecolor($maxWidth, $newHeight);
             imagecopyresampled($resized, $source, 0, 0, 0, 0, $maxWidth, $newHeight, $width, $height);
-            imagedestroy($source);
+            unset($source);
             $source = $resized;
         }
 
@@ -94,7 +94,10 @@ class ImageOptimizer
         $webpFullPath = Storage::disk($disk)->path($webpPath);
 
         imagewebp($source, $webpFullPath, $quality);
-        imagedestroy($source);
+        unset($source);
+
+        $optimizedSize = filesize($webpFullPath);
+        $originalSize = file_exists($fullPath) ? filesize($fullPath) : null;
 
         if ($replace && $webpPath !== $relativePath) {
             Storage::disk($disk)->delete($relativePath);
@@ -103,8 +106,8 @@ class ImageOptimizer
         Log::info('Image optimized', [
             'original' => $relativePath,
             'optimized' => $webpPath,
-            'original_size' => filesize($fullPath),
-            'optimized_size' => filesize($webpFullPath),
+            'original_size' => $originalSize,
+            'optimized_size' => $optimizedSize,
         ]);
 
         return $webpPath;

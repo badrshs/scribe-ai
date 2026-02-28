@@ -31,6 +31,13 @@ class OptimizeImageStage implements Pipe
             return $next($payload);
         }
 
+        if (! config('scribe-ai.images.optimize', true)) {
+            Log::info('OptimizeImageStage: optimization disabled via config');
+            $pipeline->reportProgress('Optimise Image', 'skipped — disabled in config');
+
+            return $next($payload);
+        }
+
         try {
             $optimizedPath = $this->optimizer->optimizeExisting($payload->imagePath);
 
