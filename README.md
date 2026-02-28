@@ -25,8 +25,12 @@ Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover ima
   - [Programmatic API](#programmatic-api)
   - [Custom Pipeline Stages](#custom-pipeline-stages)
   - [Custom Publish Drivers](#custom-publish-drivers)
+- [Categories](#categories)
+- [Run Tracking & Resume](#run-tracking--resume)
+- [Image Optimization](#image-optimization)
 - [Built-in Publish Drivers](#built-in-publish-drivers)
 - [Architecture](#architecture)
+- [Testing](#testing)
 - [License](#license)
 
 ---
@@ -91,6 +95,14 @@ All config lives under `config/scribe-ai.php`. Key environment variables:
 OPENAI_API_KEY=sk-...
 OPENAI_CONTENT_MODEL=gpt-4o-mini        # model for rewriting
 OPENAI_IMAGE_MODEL=dall-e-3             # model for image generation
+AI_OUTPUT_LANGUAGE=English              # language for AI-written articles
+
+# -- Pipeline ------------------------------------------
+PIPELINE_HALT_ON_ERROR=true             # stop on stage failure (default)
+PIPELINE_TRACK_RUNS=true                # persist each run for resume support
+
+# -- Image ---------------------------------------------
+IMAGE_OPTIMIZE=true                     # set false to skip WebP conversion
 
 # -- Publishing ----------------------------------------
 PUBLISHER_CHANNELS=log                  # comma-separated active channels
@@ -124,8 +136,21 @@ WORDPRESS_PASSWORD=
 # Process a URL (queued by default)
 php artisan scribe:process-url https://example.com/article
 
-# Process synchronously (no queue)
+# Process synchronously with live progress output
 php artisan scribe:process-url https://example.com/article --sync
+
+# Pass categories inline (id:name pairs)
+php artisan scribe:process-url https://example.com/article --sync --categories="1:Tech,2:Health,3:Business"
+
+# Suppress progress output
+php artisan scribe:process-url https://example.com/article --sync --silent
+
+# List recent pipeline runs
+php artisan scribe:runs
+php artisan scribe:runs --status=failed
+
+# Resume a failed run (picks up from the failed stage)
+php artisan scribe:resume 42
 
 # Publish an existing article by ID
 php artisan scribe:publish 1
@@ -143,11 +168,32 @@ php artisan scribe:publish-approved --limit=5
 use Bader\ContentPublisher\Data\ContentPayload;
 use Bader\ContentPublisher\Facades\ContentPipeline;
 use Bader\ContentPublisher\Facades\Publisher;
+use Bader\ContentPublisher\Services\Pipeline\ContentPipeline as Pipeline;
 
 // Run the full pipeline
 $payload = ContentPipeline::process(
     ContentPayload::fromUrl('https://example.com/article')
 );
+
+// Pass categories via the payload
+$payload = new ContentPayload(
+    sourceUrl: 'https://example.com/article',
+    categories: [1 => 'Technology', 2 => 'Health', 3 => 'Business'],
+);
+$result = app(Pipeline::class)->process($payload);
+
+// Resume a failed run
+$result = app(Pipeline::class)->resume($pipelineRunId);
+
+// Disable run tracking for a one-off call
+$result = app(Pipeline::class)->withoutTracking()->process($payload);
+
+// Listen to progress events
+app(Pipeline::class)
+    ->onProgress(function (string $stage, string $status) {
+        echo "{$stage}: {$status}\n";
+    })
+    ->process($payload);
 
 // Publish to a single channel
 Publisher::driver('telegram')->publish($article);
@@ -200,6 +246,126 @@ Then add `medium` to your `PUBLISHER_CHANNELS` env variable.
 
 ---
 
+## Categories
+
+Categories are **fully optional**. If no categories are provided, the AI writes freely without category constraints.
+
+When categories **are** provided, the AI selects the most appropriate one from the list and includes `category_id` in its JSON response.
+
+### How categories are resolved
+
+The pipeline resolves categories in priority order — the first non-empty source wins:
+
+| Priority | Source | Example |
+|----------|--------|---------|
+| 1 | **Payload** — passed directly in code or CLI | `--categories="1:Tech,2:Health"` |
+| 2 | **Database** — `categories` table | Rows seeded or added via your app |
+| 3 | **Config** — `scribe-ai.categories` array | `[1 => 'Tech', 2 => 'Health']` |
+| 4 | **None** — empty list | AI writes without category selection |
+
+### Passing categories
+
+**CLI:**
+```bash
+php artisan scribe:process-url https://example.com --sync --categories="1:Tech,2:Health,3:Business"
+```
+
+**Programmatic:**
+```php
+$payload = new ContentPayload(
+    sourceUrl: 'https://example.com/article',
+    categories: [1 => 'Technology', 2 => 'Health', 3 => 'Business'],
+);
+app(Pipeline::class)->process($payload);
+```
+
+**Config** (`config/scribe-ai.php`):
+```php
+'categories' => [
+    1 => 'Technology',
+    2 => 'Health',
+    3 => 'Business',
+],
+```
+
+---
+
+## Run Tracking & Resume
+
+Every pipeline execution is automatically persisted to the `pipeline_runs` table, giving you full visibility into what ran, what failed, and the ability to **resume from the exact stage that failed**.
+
+### How it works
+
+1. When `process()` starts, a `PipelineRun` record is created with status `Pending`.
+2. As each stage completes, the run's `current_stage_index` and `payload_snapshot` are updated.
+3. On success → status becomes `Completed`. On rejection → `Rejected`. On uncaught exception → `Failed` (with `error_message` and `error_stage` recorded).
+4. Failed runs can be **resumed** — the pipeline rehydrates the payload from the last snapshot and continues from the failed stage.
+
+### Listing runs
+
+```bash
+# Show the 20 most recent runs
+php artisan scribe:runs
+
+# Filter by status
+php artisan scribe:runs --status=failed
+
+# Show more
+php artisan scribe:runs --limit=50
+```
+
+### Resuming a failed run
+
+```bash
+# Resume run #42 from the stage that failed
+php artisan scribe:resume 42
+```
+
+**Programmatic:**
+```php
+use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+
+$pipeline = app(ContentPipeline::class);
+
+// Resume by run ID
+$result = $pipeline->resume(42);
+
+// Or pass the PipelineRun model directly
+$run = PipelineRun::find(42);
+$result = $pipeline->resume($run);
+```
+
+### Disabling run tracking
+
+Run tracking is enabled by default. To disable it:
+
+```env
+PIPELINE_TRACK_RUNS=false
+```
+
+Or disable it for a single call:
+```php
+app(ContentPipeline::class)->withoutTracking()->process($payload);
+```
+
+> **Note:** When tracking is enabled, the `pipeline_runs` migration must exist. If the table is missing, the pipeline throws a `RuntimeException` at startup rather than failing silently mid-run.
+
+---
+
+## Image Optimization
+
+Generated cover images are automatically converted to **WebP** format with configurable quality and dimensions. This reduces file size while maintaining visual quality.
+
+To **disable** image optimization (e.g., if you handle images externally):
+
+```env
+IMAGE_OPTIMIZE=false
+```
+
+When disabled, the `OptimizeImageStage` is silently skipped and the original image passes through unchanged.
+
+---
+
 ## Built-in Publish Drivers
 
 | Driver | Platform | Auth Method |
@@ -220,6 +386,9 @@ Then add `medium` to your `PUBLISHER_CHANNELS` env variable.
 |                                                                   |
 |  ContentPayload --> Stage 1 --> Stage 2 --> ... --> Stage N        |
 |       (DTO)         Scrape     Rewrite          Publish            |
+|                                                                   |
+|  Each stage tracked in PipelineRun (DB)                            |
+|  Failed? → snapshot saved → resume from that stage                 |
 +-------------------------------------------------------------------+
                                                        |
                                                        v
@@ -237,10 +406,41 @@ Then add `medium` to your `PUBLISHER_CHANNELS` env variable.
 
 | Class | Role |
 |-------|------|
-| `ContentPayload` | Immutable DTO carrying state between stages |
-| `ContentPipeline` | Orchestrates the stage sequence via Laravel Pipeline |
+| `ContentPayload` | Immutable DTO carrying state between stages. Supports `toSnapshot()` / `fromSnapshot()` for JSON serialisation. |
+| `ContentPipeline` | Runs stages in sequence, tracks each step in a `PipelineRun`, supports resume from failure. |
+| `PipelineRun` | Eloquent model persisting run state, stage progress, and payload snapshots to `pipeline_runs`. |
 | `PublisherManager` | Resolves and dispatches to channel drivers |
 | `PublishResult` | Per-channel outcome DTO, auto-persisted to `publish_logs` |
+
+---
+
+## Testing
+
+The package ships with **22 unit tests** (63 assertions) using [Orchestra Testbench](https://packages.tools/testbench).
+
+```bash
+# Run all unit/feature tests
+./vendor/bin/phpunit
+
+# Run a specific test
+./vendor/bin/phpunit --filter=test_full_pipeline_end_to_end
+```
+
+### Integration tests (real OpenAI API)
+
+Integration tests that call the real OpenAI API are excluded from the default test suite. To run them:
+
+1. Copy `.env.testing.example` to `.env.testing` and set your real API key:
+   ```env
+   OPENAI_API_KEY=sk-your-real-key
+   ```
+
+2. Run only integration tests:
+   ```bash
+   ./vendor/bin/phpunit --group=integration
+   ```
+
+> Integration tests are grouped with `#[Group('integration')]` and skipped automatically when no real API key is present.
 
 ---
 
