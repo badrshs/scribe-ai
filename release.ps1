@@ -1,11 +1,3 @@
-<#
-.SYNOPSIS
-    Content Publisher package release script.
-.DESCRIPTION
-    Automates: commit → tag → push for the content-publisher package.
-    Auto-detects the last tag, suggests the next patch version, and lets you override.
-#>
-
 param(
     [string]$Branch = ""
 )
@@ -35,7 +27,7 @@ function Get-NextVersion([string]$lastTag) {
     return "v$major.$minor.$patch"
 }
 
-# ── Detect current branch ──────────────────────
+# -- Detect current branch ----------------------
 if ([string]::IsNullOrWhiteSpace($Branch)) {
     $Branch = git branch --show-current 2>$null
     if ([string]::IsNullOrWhiteSpace($Branch)) {
@@ -44,7 +36,7 @@ if ([string]::IsNullOrWhiteSpace($Branch)) {
     }
 }
 
-# ── Validate remote ─────────────────────────────
+# -- Validate remote -----------------------------
 $remote = git remote 2>$null
 if ([string]::IsNullOrWhiteSpace($remote)) {
     Write-Host "  No git remote configured. Add one with:" -ForegroundColor Red
@@ -52,11 +44,12 @@ if ([string]::IsNullOrWhiteSpace($remote)) {
     exit 1
 }
 
-# ── Header ──────────────────────────────────────
+# -- Header ---------------------------------------
 Write-Banner "Content Publisher Release"
 
-# ── Detect last tag ─────────────────────────────
-$lastTag = git describe --tags --abbrev=0 2>$null
+# -- Detect last tag --------------------------------
+$lastTag = $null
+try { $lastTag = (git describe --tags --abbrev=0 2>&1) | Where-Object { $_ -notmatch 'fatal' } | Select-Object -First 1 } catch {}
 $nextTag = Get-NextVersion $lastTag
 
 Write-Host "  Branch:        " -NoNewline; Write-Host $Branch -ForegroundColor Cyan
@@ -68,12 +61,12 @@ if ($lastTag) {
 Write-Host "  Suggested next:" -NoNewline; Write-Host " $nextTag" -ForegroundColor Green
 Write-Host ""
 
-# ── Stage 1: Commit ────────────────────────────
+# -- Stage 1: Commit --------------------------------
 Write-Banner "Stage 1: Commit Changes"
 
 $status = git status --short
 if (-not $status) {
-    Write-Host "  Working tree clean — nothing to commit." -ForegroundColor DarkGray
+    Write-Host "  Working tree clean -- nothing to commit." -ForegroundColor DarkGray
     $skipCommit = $true
 } else {
     Write-Host "  Changed files:" -ForegroundColor DarkGray
@@ -95,7 +88,7 @@ if (-not $status) {
     Write-Host "  Committed." -ForegroundColor Green
 }
 
-# ── Stage 2: Tag ───────────────────────────────
+# -- Stage 2: Tag -----------------------------------
 Write-Banner "Stage 2: Create Tag"
 
 $inputTag = Read-Host "  Tag version [$nextTag]"
@@ -130,7 +123,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "  Tag created: $inputTag" -ForegroundColor Green
 
-# ── Stage 3: Push ──────────────────────────────
+# -- Stage 3: Push ----------------------------------
 Write-Banner "Stage 3: Push to Remote"
 
 Write-Host "  Pushing commits to $Branch..." -ForegroundColor DarkGray
@@ -147,7 +140,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# ── Done ───────────────────────────────────────
+# -- Done -------------------------------------------
 Write-Banner "Release Complete!"
 
 Write-Host "  Tag:     $inputTag" -ForegroundColor Green
