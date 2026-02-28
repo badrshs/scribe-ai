@@ -82,7 +82,7 @@ class AiService
         $payload = [
             'model' => $model,
             'messages' => $messages,
-            'max_tokens' => $maxTokens,
+            $this->maxTokensParam($model) => $maxTokens,
         ];
 
         if ($jsonMode) {
@@ -103,6 +103,19 @@ class AiService
         }
 
         return $response->json();
+    }
+
+    /**
+     * Determine the correct max-tokens parameter name for the given model.
+     *
+     * Newer models (gpt-4o, gpt-5, o1, o3, etc.) require 'max_completion_tokens'.
+     * Legacy models (gpt-3.5, gpt-4-turbo, gpt-4 without -o) use 'max_tokens'.
+     */
+    protected function maxTokensParam(string $model): string
+    {
+        $modern = preg_match('/gpt-4o|gpt-5|o1-|o3-|o1$|o3$/i', $model);
+
+        return $modern ? 'max_completion_tokens' : 'max_tokens';
     }
 
     /**

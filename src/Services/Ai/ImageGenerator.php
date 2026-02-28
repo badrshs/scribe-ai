@@ -23,6 +23,9 @@ class ImageGenerator
         $size ??= config('scribe-ai.ai.image_size', '1024x1024');
         $quality ??= config('scribe-ai.ai.image_quality', 'standard');
 
+        // Auto-correct size to a value the model actually supports.
+        $size = $this->validateSize($model, $size);
+
         Log::info('Generating AI image', compact('model', 'size', 'quality'));
 
         $imageData = $this->requestImage($prompt, $model, $size, $quality);
@@ -95,5 +98,33 @@ class ImageGenerator
         Log::info('AI image stored', ['path' => $filename]);
 
         return $filename;
+    }
+
+    /**
+     * Validate and auto-correct the image size for the given model.
+     *
+     * Each model family has a fixed set of supported sizes. If the
+     * configured size is not valid, fall back to 1024x1024.
+     */
+    protected function validateSize(string $model, string $size): string
+    {
+        $supported = match (true) {
+            str_starts_with($model, 'dall-e-2') => ['256x256', '512x512', '1024x1024'],
+            str_starts_with($model, 'dall-e-3') => ['1024x1024', '1792x1024', '1024x1792'],
+            // gpt-image-1 and future models
+            default => ['1024x1024', '1024x1536', '1536x1024', 'auto'],
+        };
+
+        if (in_array($size, $supported, true)) {
+            return $size;
+        }
+
+        Log::warning("Image size '{$size}' not supported by {$model}, falling back to 1024x1024", [
+            'model' => $model,
+            'requested' => $size,
+            'supported' => $supported,
+        ]);
+
+        return '1024x1024';
     }
 }
