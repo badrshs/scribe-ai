@@ -3,17 +3,56 @@
 [![Latest Version](https://img.shields.io/github/v/tag/badrshs/scribe-ai?label=version)](https://github.com/badrshs/scribe-ai/releases)
 [![License](https://img.shields.io/github/license/badrshs/scribe-ai)](https://github.com/badrshs/scribe-ai/blob/master/LICENSE)
 
-A pluggable Laravel package for AI-powered content processing and multi-channel publishing.
+**Scribe AI** is a Laravel package that acts as a fully autonomous content agent — give it a URL, and it handles everything else: scraping the source, rewriting the content with AI, generating and optimizing a cover image, storing the article, and pushing it live to one or more publishing channels, all in a single pipeline run.
 
-**GitHub:** https://github.com/badrshs/scribe-ai
+It was built around one core idea: **content should flow from raw input to published output without manual intervention.** Every step is a composable, swappable stage. Every output is logged. Every channel is a pluggable driver.
 
-## Features
+### What it does, step by step
 
-- **Pipeline Pattern** -- Configurable content processing stages (scrape -> AI rewrite -> image generation -> optimize -> publish)
-- **Strategy Pattern** -- Swappable publisher drivers (Facebook, Telegram, Blogger, WordPress, Log)
-- **Manager Pattern** -- Runtime driver registration via `extend()`, just like Laravel's Cache/Queue
-- **AI Services** -- OpenAI-powered content rewriting, SEO suggestions, and image generation
-- **Queue Support** -- Background processing with configurable queues and overlap protection
+**1. Scrape**
+Point it at any URL. The scraper extracts the title, body text, and meta from the page — no boilerplate, no noise.
+
+**2. AI Rewrite**
+The raw content is passed to OpenAI. The AI rewrites it into a clean, well-structured article — with a proper tone, flow, and length — ready for publication.
+
+**3. Generate Image**
+No image? No problem. The AI generates a relevant cover image from the article context using DALL-E (or your own image generation backend).
+
+**4. Optimize Image**
+The generated (or existing) image is automatically resized, compressed, and stored — ready for web delivery without you touching a thing.
+
+**5. Create Article**
+The rewritten content and optimized image are saved as a structured `Article` model in your Laravel app, with status tracking, category, tags, and full audit trail.
+
+**6. Publish**
+The article is pushed to every configured publishing channel simultaneously — Facebook Page, Telegram Channel, Google Blogger, WordPress, or your own custom driver. Each publish is logged with its result.
+
+---
+
+```
+[ URL ]
+   |
+   v
+[ Scrape ]  ->  extract title, body, metadata from any webpage
+   |
+   v
+[ AI Rewrite ]  ->  GPT rewrites content into a polished article
+   |
+   v
+[ Generate Image ]  ->  DALL-E creates a relevant cover image
+   |
+   v
+[ Optimize Image ]  ->  resize, compress, store for web
+   |
+   v
+[ Create Article ]  ->  saved to your DB with full audit fields
+   |
+   v
+[ Publish ]  ->  pushed to Facebook, Telegram, Blogger, WordPress, ...
+```
+
+The entire flow runs in a **queued background job** — fire and forget. Or run it synchronously if you need it inline. Stages are individually swappable; drop one out, add your own, reorder them — the pipeline adapts.
+
 
 ## Installation
 
