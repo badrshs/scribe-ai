@@ -8,6 +8,10 @@
     <testsuites>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <exclude>tests/Feature/OpenAiIntegrationTest.php</exclude>
+        </testsuite>
+        <testsuite name="Integration">
+            <file>tests/Feature/OpenAiIntegrationTest.php</file>
         </testsuite>
     </testsuites>
     <php>
