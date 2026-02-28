@@ -119,6 +119,13 @@ return [
             Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
             Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
         ],
+
+        /*
+        | When true, the pipeline halts and rejects the payload if any stage
+        | throws an exception. When false, failing stages log a warning and
+        | continue to the next stage (legacy behaviour).
+        */
+        'halt_on_error' => (bool) env('PIPELINE_HALT_ON_ERROR', true),
     ],
 
     /*

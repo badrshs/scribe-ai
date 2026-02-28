@@ -6,6 +6,7 @@ use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
 use Bader\ContentPublisher\Models\Category;
 use Bader\ContentPublisher\Services\Ai\AiService;
+use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -27,10 +28,14 @@ class AiRewriteStage implements Pipe
 
     public function handle(ContentPayload $payload, Closure $next): mixed
     {
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->reportProgress('AI Rewrite', 'started');
+
         $content = $payload->cleanedContent ?? $payload->rawContent;
 
         if (! $content) {
             Log::warning('AiRewriteStage: no content to process, skipping');
+            $pipeline->reportProgress('AI Rewrite', 'skipped — no content to process');
 
             return $next($payload);
         }
@@ -52,6 +57,8 @@ class AiRewriteStage implements Pipe
                 'reason' => $result['reason'] ?? 'No reason provided',
             ]);
 
+            $pipeline->reportProgress('AI Rewrite', 'rejected — ' . ($result['reason'] ?? 'no reason'));
+
             return $payload->with([
                 'rejected' => true,
                 'rejectionReason' => $result['reason'] ?? 'Rejected by AI',
@@ -65,6 +72,8 @@ class AiRewriteStage implements Pipe
             'category_id' => $categoryId,
             'tags_count' => count($result['tags'] ?? []),
         ]);
+
+        $pipeline->reportProgress('AI Rewrite', 'completed — "' . ($result['title'] ?? 'untitled') . '"');
 
         return $next($payload->with([
             'title' => $result['title'] ?? $payload->title,

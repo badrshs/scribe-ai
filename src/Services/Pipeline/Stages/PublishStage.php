@@ -4,6 +4,7 @@ namespace Bader\ContentPublisher\Services\Pipeline\Stages;
 
 use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Bader\ContentPublisher\Services\Publishing\PublisherManager;
 use Closure;
 use Illuminate\Support\Facades\Log;
@@ -24,8 +25,12 @@ class PublishStage implements Pipe
 
     public function handle(ContentPayload $payload, Closure $next): mixed
     {
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->reportProgress('Publish', 'started');
+
         if (! $payload->article) {
             Log::info('PublishStage: skipped (no article to publish)');
+            $pipeline->reportProgress('Publish', 'skipped — no article to publish');
 
             return $next($payload);
         }
@@ -35,11 +40,15 @@ class PublishStage implements Pipe
         try {
             $results = $this->publisher->publishToChannels($article);
 
+            $successCount = collect($results)->filter(fn($r) => $r->success)->count();
+
             Log::info('PublishStage: publishing complete', [
                 'article_id' => $article->id,
                 'channels' => array_keys($results),
-                'success_count' => collect($results)->filter(fn($r) => $r->success)->count(),
+                'success_count' => $successCount,
             ]);
+
+            $pipeline->reportProgress('Publish', 'completed — ' . $successCount . '/' . count($results) . ' channels succeeded');
 
             return $next($payload->with(['publishResults' => $results]));
         } catch (\Throwable $e) {
@@ -47,6 +56,15 @@ class PublishStage implements Pipe
                 'article_id' => $article->id,
                 'error' => $e->getMessage(),
             ]);
+
+            $pipeline->reportProgress('Publish', 'failed — ' . $e->getMessage());
+
+            if (config('scribe-ai.pipeline.halt_on_error', true)) {
+                return $payload->with([
+                    'rejected' => true,
+                    'rejectionReason' => 'Publishing failed: ' . $e->getMessage(),
+                ]);
+            }
 
             return $next($payload);
         }

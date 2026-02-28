@@ -7,6 +7,7 @@ use Bader\ContentPublisher\Data\ContentPayload;
 use Bader\ContentPublisher\Enums\ArticleStatus;
 use Bader\ContentPublisher\Models\Article;
 use Bader\ContentPublisher\Models\Tag;
+use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -21,7 +22,12 @@ class CreateArticleStage implements Pipe
 {
     public function handle(ContentPayload $payload, Closure $next): mixed
     {
+        $pipeline = app(ContentPipeline::class);
+        $pipeline->reportProgress('Create Article', 'started');
+
         if ($payload->rejected) {
+            $pipeline->reportProgress('Create Article', 'skipped — content was rejected');
+
             return $payload;
         }
 
@@ -50,6 +56,8 @@ class CreateArticleStage implements Pipe
             'slug' => $article->slug,
             'tags_count' => count($payload->tags),
         ]);
+
+        $pipeline->reportProgress('Create Article', 'completed — ID #' . $article->id);
 
         return $next($payload->with(['article' => $article]));
     }

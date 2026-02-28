@@ -24,15 +24,43 @@ class ContentPipeline
     /** @var class-string[]|null */
     protected ?array $customStages = null;
 
+    /** @var (\Closure(string, string): void)|null */
+    protected ?\Closure $onProgress = null;
+
     public function __construct(
         protected Pipeline $pipeline,
     ) {}
+
+    /**
+     * Register a callback invoked when each stage starts/finishes.
+     *
+     * Signature: function(string $stage, string $status): void
+     * $status is 'started' or 'completed'.
+     */
+    public function onProgress(\Closure $callback): static
+    {
+        $this->onProgress = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Report progress for the current stage (called by stages).
+     */
+    public function reportProgress(string $stage, string $status): void
+    {
+        if ($this->onProgress) {
+            ($this->onProgress)($stage, $status);
+        }
+    }
 
     /**
      * Process a content payload through all pipeline stages.
      */
     public function process(ContentPayload $payload): ContentPayload
     {
+        $this->reportProgress('Pipeline', 'started');
+
         Log::info('Content pipeline started', [
             'source_url' => $payload->sourceUrl,
             'staged_content_id' => $payload->stagedContent?->id,
@@ -54,6 +82,9 @@ class ContentPipeline
                 'article_id' => $result->article?->id,
             ]);
         }
+
+        $this->reportProgress('Pipeline', 'completed');
+        $this->onProgress = null;
 
         return $result;
     }
