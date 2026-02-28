@@ -40,7 +40,7 @@ class AiRewriteStage implements Pipe
             return $next($payload);
         }
 
-        $categories = Category::query()->pluck('name', 'id')->toArray();
+        $categories = $this->resolveCategories($payload);
 
         $systemPrompt = $this->buildSystemPrompt($categories);
         $userPrompt = "Process the following article content:\n\n<content>\n{$content}\n</content>";
@@ -104,11 +104,34 @@ class AiRewriteStage implements Pipe
         $language = config('scribe-ai.ai.output_language', 'English');
         $isRtl = in_array(strtolower($language), ['arabic', 'hebrew', 'persian', 'urdu']);
 
-        $categoriesJson = json_encode($categories, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $hasCategories = ! empty($categories);
+        $categoriesJson = $hasCategories
+            ? json_encode($categories, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+            : '(none provided)';
 
         $rtlDirective = $isRtl
             ? "\n- The \"content\" field MUST be full RTL HTML. Wrap the output in a container with dir=\"rtl\" and lang attribute matching the target language (e.g. lang=\"ar\" for Arabic)."
             : '';
+
+        $categoryInputBlock = $hasCategories
+            ? "You will also receive a category list as JSON:\n  {$categoriesJson}"
+            : "No category list is provided. You may skip category assignment.";
+
+        $categorySelectionBlock = $hasCategories
+            ? "- Choose the category number closest to the article's topic ONLY from the provided list:\n  {$categoriesJson}\n- Do not use any ID not present in this list."
+            : "- No categories were provided. Set category_id to null.";
+
+        $categoryIdInstruction = $hasCategories
+            ? 'category_id_from_provided_list'
+            : 'null';
+
+        $categoryRule = $hasCategories
+            ? '6) Use ONLY categories from the provided list.'
+            : '6) category_id must be null since no category list was provided.';
+
+        $categoryCheck = $hasCategories
+            ? '- [ ] category_id is from the provided list'
+            : '- [ ] category_id is null (no categories provided)';
 
         return <<<PROMPT
 You are a senior editor and expert rewriter. Your task is to extract the article from the provided input (which may be raw text, HTML, or noisy scraped text), clean it up, then translate and rewrite it in {$language} in a professional, original style, while checking whether it is suitable for publication. Return ONLY a single valid JSON object with the structure described below.
@@ -118,8 +141,7 @@ You will receive one of the following:
   1) Full HTML of a page, or
   2) Raw article text, or
   3) Text mixed with scraping noise (links, comments, menus, footers, etc.).
-You will also receive a category list as JSON:
-  {$categoriesJson}
+{$categoryInputBlock}
 
 # Goal
 - Transform the original article into clear, professional, publish-ready content in {$language}, preserving the full structural meaning, after removing any elements that are not part of the article body (scraping artifacts).
@@ -150,9 +172,7 @@ When receiving HTML or noisy text:
 - Do not pad unnecessarily, and do not drop any important information from the article body.
 
 # Category Selection (category_id)
-- Choose the category number closest to the article's topic ONLY from the provided list:
-  {$categoriesJson}
-- Do not use any ID not present in this list.
+{$categorySelectionBlock}
 
 # Tags
 - Create 3–5 precise tags in {$language} that reflect the article's main themes.
@@ -174,7 +194,7 @@ When receiving HTML or noisy text:
   "content": "<div>... full rewritten {$language} HTML ...</div>",
   "meta_title": "{$language} SEO title",
   "meta_description": "{$language} SEO description between 50-160 chars",
-  "category_id": category_id_from_provided_list,
+  "category_id": {$categoryIdInstruction},
   "tags": ["tag 1", "tag 2", "tag 3"]
 }
 
@@ -184,7 +204,7 @@ When receiving HTML or noisy text:
 3) Remove all links, emails, phone numbers, and click-bait calls.
 4) Do not add opinions, sources, or website references; the article must stand on its own.
 5) If the content is unsuitable for publication per the standards, return JSON with status="reject", fill reject_reasons briefly explaining why, and return the remaining fields gracefully (use short placeholders or leave empty as needed) so the JSON is still valid for import.
-6) Use ONLY categories from the provided list.
+{$categoryRule}
 7) Make sure the text does not read like a literal translation: rearrange structures and redistribute information without altering the meaning.
 
 # Final Check (perform internally before outputting):
@@ -193,9 +213,45 @@ When receiving HTML or noisy text:
 - [ ] HTML structure is correct
 - [ ] Length reflects all important information without filler
 - [ ] meta_description is between 50–160 characters
-- [ ] category_id is from the provided list
+{$categoryCheck}
 - [ ] Tags are precise and concise
 PROMPT;
+    }
+
+    /**
+     * Resolve the available categories from payload, database, or config.
+     *
+     * Priority: payload → database → config → empty.
+     *
+     * @return array<int, string>
+     */
+    protected function resolveCategories(ContentPayload $payload): array
+    {
+        // 1. Explicit categories on the payload
+        if (! empty($payload->categories)) {
+            return $payload->categories;
+        }
+
+        // 2. Categories from the database
+        try {
+            $dbCategories = Category::query()->pluck('name', 'id')->toArray();
+            if (! empty($dbCategories)) {
+                return $dbCategories;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('AiRewriteStage: could not query categories table', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // 3. Static categories from config
+        $configCategories = config('scribe-ai.categories', []);
+        if (! empty($configCategories)) {
+            return $configCategories;
+        }
+
+        // 4. No categories available — the prompt will adapt
+        return [];
     }
 
     /**
@@ -204,6 +260,13 @@ PROMPT;
      */
     protected function resolveCategory(array $result, array $categories): ?int
     {
+        // No categories configured — accept whatever the AI returns (or null)
+        if (empty($categories)) {
+            $id = $result['category_id'] ?? null;
+
+            return $id !== null ? (int) $id : null;
+        }
+
         $categoryId = $result['category_id'] ?? null;
 
         if ($categoryId && isset($categories[$categoryId])) {

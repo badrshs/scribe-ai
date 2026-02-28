@@ -32,6 +32,8 @@ class ProcessContentPipelineJob implements ShouldQueue
     public function __construct(
         protected ?int $stagedContentId = null,
         protected ?string $url = null,
+        /** @var array<int, string> */
+        protected array $categories = [],
     ) {
         $this->onQueue(config('scribe-ai.queue.pipeline', 'pipeline'));
     }
@@ -91,11 +93,19 @@ class ProcessContentPipelineJob implements ShouldQueue
                 return null;
             }
 
-            return ContentPayload::fromStagedContent($staged);
+            $payload = ContentPayload::fromStagedContent($staged);
+
+            return ! empty($this->categories)
+                ? $payload->with(['categories' => $this->categories])
+                : $payload;
         }
 
         if ($this->url) {
-            return ContentPayload::fromUrl($this->url);
+            $payload = ContentPayload::fromUrl($this->url);
+
+            return ! empty($this->categories)
+                ? $payload->with(['categories' => $this->categories])
+                : $payload;
         }
 
         Log::warning('Pipeline job: no staged content ID or URL provided');

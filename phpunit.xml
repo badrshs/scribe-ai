@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+>
+    <testsuites>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_KEY" value="base64:dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdGtleQ=="/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="OPENAI_API_KEY" value="sk-test-fake-key"/>
+        <env name="PUBLISHER_CHANNELS" value="log"/>
+        <env name="PUBLISHER_DEFAULT_CHANNEL" value="log"/>
+        <env name="AI_OUTPUT_LANGUAGE" value="English"/>
+    </php>
+</phpunit>

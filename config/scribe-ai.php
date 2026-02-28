@@ -108,6 +108,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Categories
+    |--------------------------------------------------------------------------
+    |
+    | Static category map used when no categories exist in the database
+    | and none are passed explicitly. Format: [id => name].
+    | Leave empty to let the pipeline work without categories.
+    |
+    | Example:
+    |   'categories' => [1 => 'Technology', 2 => 'Health', 3 => 'Business'],
+    |
+    */
+
+    'categories' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Content Pipeline
     |--------------------------------------------------------------------------
     |

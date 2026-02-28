@@ -15,19 +15,21 @@ class ProcessUrlCommand extends Command
     protected $signature = 'scribe:process-url
         {url : The URL to fetch and process}
         {--sync : Process synchronously instead of dispatching a job}
-        {--silent : Suppress progress output}';
+        {--silent : Suppress progress output}
+        {--categories= : Comma-separated id:name pairs (e.g. "1:Tech,2:Health")}';
 
     protected $description = 'Process a URL through the Scribe AI content pipeline';
 
     public function handle(): int
     {
         $url = $this->argument('url');
+        $categories = $this->parseCategories($this->option('categories'));
 
         if ($this->option('sync')) {
-            return $this->processSync($url);
+            return $this->processSync($url, $categories);
         }
 
-        ProcessContentPipelineJob::dispatch(url: $url);
+        ProcessContentPipelineJob::dispatch(url: $url, categories: $categories);
 
         if (! $this->option('silent')) {
             $this->info("Pipeline job dispatched for: {$url}");
@@ -38,7 +40,7 @@ class ProcessUrlCommand extends Command
         return self::SUCCESS;
     }
 
-    protected function processSync(string $url): int
+    protected function processSync(string $url, array $categories = []): int
     {
         $silent = $this->option('silent');
 
@@ -78,6 +80,11 @@ class ProcessUrlCommand extends Command
         }
 
         $payload = ContentPayload::fromUrl($url);
+
+        if (! empty($categories)) {
+            $payload = $payload->with(['categories' => $categories]);
+        }
+
         $result = $pipeline->process($payload);
 
         $elapsed = round(microtime(true) - $started, 2);
@@ -104,5 +111,29 @@ class ProcessUrlCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Parse "1:Tech,2:Health" into [1 => 'Tech', 2 => 'Health'].
+     *
+     * @return array<int, string>
+     */
+    protected function parseCategories(?string $raw): array
+    {
+        if (! $raw) {
+            return [];
+        }
+
+        $categories = [];
+
+        foreach (explode(',', $raw) as $pair) {
+            $parts = explode(':', trim($pair), 2);
+
+            if (count($parts) === 2 && is_numeric($parts[0])) {
+                $categories[(int) $parts[0]] = trim($parts[1]);
+            }
+        }
+
+        return $categories;
     }
 }
