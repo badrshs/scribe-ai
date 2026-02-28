@@ -31,6 +31,8 @@ Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover ima
 - [Image Optimization](#image-optimization)
 - [Built-in Publish Drivers](#built-in-publish-drivers)
 - [Architecture](#architecture)
+- [Extensions](#extensions)
+  - [Telegram Approval (RSS → AI → Telegram → Pipeline)](#telegram-approval-rss--ai--telegram--pipeline)
 - [Testing](#testing)
 - [License](#license)
 
@@ -130,6 +132,13 @@ GOOGLE_APPLICATION_CREDENTIALS=
 WORDPRESS_URL=
 WORDPRESS_USERNAME=
 WORDPRESS_PASSWORD=
+
+# -- Telegram Approval Extension -----------------------
+TELEGRAM_APPROVAL_ENABLED=false         # enable the RSS→Telegram workflow
+TELEGRAM_APPROVAL_BOT_TOKEN=            # defaults to TELEGRAM_BOT_TOKEN
+TELEGRAM_APPROVAL_CHAT_ID=              # defaults to TELEGRAM_CHAT_ID
+TELEGRAM_WEBHOOK_URL=                   # set for webhook mode
+TELEGRAM_WEBHOOK_SECRET=                # optional verification secret
 ```
 
 ---
@@ -546,6 +555,95 @@ When disabled, the `OptimizeImageStage` is silently skipped and the original ima
 | `PipelineRun` | Eloquent model persisting run state, stage progress, and payload snapshots to `pipeline_runs`. |
 | `PublisherManager` | Resolves and dispatches to channel publish drivers. |
 | `PublishResult` | Per-channel outcome DTO, auto-persisted to `publish_logs`. |
+
+---
+
+## Extensions
+
+Extensions are optional modules that add complete workflows on top of the core pipeline. Each extension is loaded only when explicitly enabled, keeping the default footprint minimal.
+
+### Telegram Approval (RSS → AI → Telegram → Pipeline)
+
+A two-phase human-in-the-loop workflow:
+
+```
+Phase 1:  RSS feed → AI analysis → Telegram messages with ✅/❌ buttons → StagedContent (pending)
+Phase 2:  Human approves → pipeline dispatched with web driver → Article created & published
+```
+
+#### Enable the extension
+
+```env
+TELEGRAM_APPROVAL_ENABLED=true
+
+# Uses the Telegram publish driver's bot_token/chat_id by default.
+# Override if you want a separate bot for approvals:
+TELEGRAM_APPROVAL_BOT_TOKEN=
+TELEGRAM_APPROVAL_CHAT_ID=
+```
+
+#### Phase 1 — Fetch RSS & send for review
+
+```bash
+# Fetch RSS, filter entries from the last 7 days, send to Telegram
+php artisan scribe:rss-review https://blog.com/feed.xml
+
+# Use AI to summarise and rank entries, filter older than 3 days
+php artisan scribe:rss-review https://blog.com/feed.xml --days=3 --ai-filter
+
+# Limit to 5 entries
+php artisan scribe:rss-review https://blog.com/feed.xml --limit=5 --ai-filter
+```
+
+Each entry appears in your Telegram chat with:
+- Title, category, AI summary (when `--ai-filter` is used)
+- Source URL
+- **✅ Approve** / **❌ Reject** inline buttons
+
+Entries are stored as `StagedContent` (pending). The pipeline does **not** run yet.
+
+#### Phase 2 — Process decisions
+
+**Option A: Polling** (no webhook needed, works locally)
+```bash
+# Continuous long-poll (Ctrl+C to stop)
+php artisan scribe:telegram-poll
+
+# Single pass — process pending decisions and exit
+php artisan scribe:telegram-poll --once
+```
+
+**Option B: Webhook** (production — Telegram pushes decisions to your app)
+```env
+TELEGRAM_WEBHOOK_URL=https://yourapp.com/api/scribe/telegram/webhook
+TELEGRAM_WEBHOOK_SECRET=your-random-secret
+```
+```bash
+php artisan scribe:telegram-set-webhook
+```
+
+When you tap **✅ Approve** in Telegram:
+1. The `StagedContent` is marked as approved
+2. The full pipeline is dispatched using the **web** driver (URL already known)
+3. Article is created, optimised, and published to your configured channels
+
+When you tap **❌ Reject**, the entry is marked as processed and skipped.
+
+#### Extension file structure
+
+All extension code lives in a self-contained directory:
+
+```
+src/Extensions/TelegramApproval/
+    TelegramApprovalService.php     # Telegram Bot API interactions
+    CallbackHandler.php             # Processes approve/reject decisions
+    RssReviewCommand.php            # scribe:rss-review
+    TelegramPollCommand.php         # scribe:telegram-poll
+    SetWebhookCommand.php           # scribe:telegram-set-webhook
+    TelegramWebhookController.php   # HTTP controller for webhook
+routes/
+    telegram-webhook.php            # Webhook route definition
+```
 
 ---
 

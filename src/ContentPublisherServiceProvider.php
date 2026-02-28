@@ -7,6 +7,11 @@ use Bader\ContentPublisher\Console\Commands\ProcessUrlCommand;
 use Bader\ContentPublisher\Console\Commands\PublishApprovedCommand;
 use Bader\ContentPublisher\Console\Commands\PublishArticleCommand;
 use Bader\ContentPublisher\Console\Commands\ResumeRunCommand;
+use Bader\ContentPublisher\Extensions\TelegramApproval\CallbackHandler;
+use Bader\ContentPublisher\Extensions\TelegramApproval\RssReviewCommand;
+use Bader\ContentPublisher\Extensions\TelegramApproval\SetWebhookCommand;
+use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramApprovalService;
+use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramPollCommand;
 use Bader\ContentPublisher\Services\Ai\AiService;
 use Bader\ContentPublisher\Services\Ai\ContentRewriter;
 use Bader\ContentPublisher\Services\Ai\ImageGenerator;
@@ -41,6 +46,12 @@ class ContentPublisherServiceProvider extends ServiceProvider
         $this->app->alias(PublisherManager::class, 'scribe-ai');
         $this->app->alias(ContentPipeline::class, 'scribe-pipeline');
         $this->app->alias(ContentSourceManager::class, 'scribe-source');
+
+        // ── Telegram Approval Extension ──────────────────────────────
+        if ($this->isTelegramApprovalEnabled()) {
+            $this->app->singleton(TelegramApprovalService::class);
+            $this->app->singleton(CallbackHandler::class);
+        }
     }
 
     public function boot(): void
@@ -56,13 +67,36 @@ class ContentPublisherServiceProvider extends ServiceProvider
 
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-            $this->commands([
+            $commands = [
                 ListRunsCommand::class,
                 ProcessUrlCommand::class,
                 PublishApprovedCommand::class,
                 PublishArticleCommand::class,
                 ResumeRunCommand::class,
-            ]);
+            ];
+
+            if ($this->isTelegramApprovalEnabled()) {
+                $commands = array_merge($commands, [
+                    RssReviewCommand::class,
+                    TelegramPollCommand::class,
+                    SetWebhookCommand::class,
+                ]);
+            }
+
+            $this->commands($commands);
         }
+
+        // Load webhook route when extension is enabled and webhook URL is set
+        if ($this->isTelegramApprovalEnabled() && config('scribe-ai.extensions.telegram_approval.webhook_url')) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes/telegram-webhook.php');
+        }
+    }
+
+    /**
+     * Check if the Telegram Approval extension is enabled.
+     */
+    protected function isTelegramApprovalEnabled(): bool
+    {
+        return (bool) config('scribe-ai.extensions.telegram_approval.enabled', false);
     }
 }

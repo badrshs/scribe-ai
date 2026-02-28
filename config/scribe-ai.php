@@ -234,4 +234,45 @@ return [
         'publishing' => env('PUBLISHING_QUEUE', 'publishing'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Extensions
+    |--------------------------------------------------------------------------
+    |
+    | Optional extension modules. Each extension is loaded only when
+    | explicitly enabled, keeping the default footprint minimal.
+    |
+    */
+
+    'extensions' => [
+
+        /*
+        |----------------------------------------------------------------------
+        | Telegram Approval Extension
+        |----------------------------------------------------------------------
+        |
+        | Enables the RSS → AI analysis → Telegram approval workflow.
+        |
+        | Phase 1: scribe:rss-review fetches RSS, optionally filters with AI,
+        |          and sends each entry to Telegram with ✅/❌ buttons.
+        |
+        | Phase 2: scribe:telegram-poll (or the webhook) processes decisions.
+        |          Approved entries are dispatched through the full pipeline.
+        |
+        | The bot_token and chat_id default to the Telegram publish driver
+        | settings if not overridden here.
+        |
+        */
+
+        'telegram_approval' => [
+            'enabled' => (bool) env('TELEGRAM_APPROVAL_ENABLED', false),
+            'bot_token' => env('TELEGRAM_APPROVAL_BOT_TOKEN'),
+            'chat_id' => env('TELEGRAM_APPROVAL_CHAT_ID'),
+            'webhook_url' => env('TELEGRAM_WEBHOOK_URL'),
+            'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+            'webhook_path' => env('TELEGRAM_WEBHOOK_PATH', 'api/scribe/telegram/webhook'),
+        ],
+
+    ],
+
 ];
