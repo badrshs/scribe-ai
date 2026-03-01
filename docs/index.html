@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scribe AI — Documentation</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="description" content="Scribe AI — AI-powered content pipeline &amp; multi-channel publisher for Laravel">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+  <style>
+    :root {
+      --theme-color: #4f46e5;
+      --sidebar-width: 280px;
+      --sidebar-nav-link-color--active: #4f46e5;
+      --sidebar-nav-link-border-color--active: #4f46e5;
+      --link-color: #4f46e5;
+      --heading-color: #1e293b;
+    }
+    .markdown-section h1 { border-bottom: 2px solid #e2e8f0; padding-bottom: .4em; }
+    .markdown-section h2 { border-bottom: 1px solid #e2e8f0; padding-bottom: .3em; }
+    .markdown-section table { display: table; width: 100%; }
+    .sidebar-nav > ul > li > p { font-weight: 700; margin: 1em 0 0.4em; }
+    /* LaRecipe callout styles */
+    .callout { border-left: 4px solid; padding: 12px 16px; margin: 16px 0; border-radius: 4px; }
+    .callout-primary { border-color: #4f46e5; background: #eef2ff; }
+    .callout-info { border-color: #0ea5e9; background: #f0f9ff; }
+    .callout-warning { border-color: #f59e0b; background: #fffbeb; }
+    .callout-danger { border-color: #ef4444; background: #fef2f2; }
+    .cover-main { max-width: 680px; }
+    .cover-main > p:last-child a {
+      border-radius: 2rem;
+      padding: 0.6em 2em;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    // Convert LaRecipe callouts to styled divs
+    function convertCallouts(hook) {
+      hook.afterEach(function(html) {
+        return html
+          .replace(/<blockquote>\s*<p>\{primary\}\s*/g, '<div class="callout callout-primary"><p>')
+          .replace(/<blockquote>\s*<p>\{info\}\s*/g, '<div class="callout callout-info"><p>')
+          .replace(/<blockquote>\s*<p>\{warning\}\s*/g, '<div class="callout callout-warning"><p>')
+          .replace(/<blockquote>\s*<p>\{danger\}\s*/g, '<div class="callout callout-danger"><p>')
+          .replace(/<\/p>\s*<\/blockquote>/g, function(match, offset, str) {
+            // Check if this closing tag belongs to a callout
+            var before = str.substring(0, offset);
+            if (before.lastIndexOf('callout') > before.lastIndexOf('</div>')) {
+              return '</p></div>';
+            }
+            return match;
+          });
+      });
+    }
+
+    window.$docsify = {
+      name: 'Scribe AI',
+      repo: 'badrshs/scribe-ai',
+      loadSidebar: true,
+      subMaxLevel: 3,
+      auto2top: true,
+      search: {
+        placeholder: 'Search documentation...',
+        noData: 'No results found.',
+        depth: 3,
+      },
+      plugins: [convertCallouts],
+      coverpage: true,
+      homepage: 'overview.md',
+    };
+  </script>
+  <!-- Docsify core -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+  <!-- Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-ini.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
+</body>
+</html>
