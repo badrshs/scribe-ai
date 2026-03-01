@@ -54,6 +54,14 @@ class PublisherManager
     public function publishToChannels(Article $article, ?array $channels = null): array
     {
         $channels ??= config('scribe-ai.channels', ['log']);
+
+        // Normalise — explode may produce empty strings from env
+        $channels = array_values(array_filter($channels, fn ($ch) => is_string($ch) && $ch !== ''));
+
+        if (empty($channels)) {
+            $channels = ['log'];
+        }
+
         $results = [];
 
         foreach ($channels as $channel) {

@@ -64,6 +64,11 @@ class InstallCommand extends Command
                 '--force' => $this->option('force'),
             ]);
         });
+
+        // Clear cached config so the freshly published config is loaded
+        $this->components->task('Clearing config cache', function () {
+            $this->callSilently('config:clear');
+        });
     }
 
     protected function configureAiProvider(): void
@@ -162,13 +167,23 @@ class InstallCommand extends Command
         $this->newLine();
         $this->components->info('Publish Channels');
 
+        $available = ['log', 'telegram', 'facebook', 'blogger', 'wordpress'];
+
         $channels = $this->choice(
             'Which channels do you want to publish to? (comma-separated)',
-            ['log', 'telegram', 'facebook', 'blogger', 'wordpress'],
+            $available,
             'log',
             null,
             true,
         );
+
+        // Normalise — choice() may return a string or array depending on driver
+        $channels = is_array($channels) ? $channels : [$channels];
+        $channels = array_values(array_filter($channels, fn ($ch) => in_array($ch, $available, true)));
+
+        if (empty($channels)) {
+            $channels = ['log'];
+        }
 
         $this->envLines['PUBLISHER_CHANNELS'] = implode(',', $channels);
         $this->envLines['PUBLISHER_DEFAULT_CHANNEL'] = $channels[0];
