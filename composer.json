@@ -50,6 +50,7 @@
     "prefer-stable": true,
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.9",
-        "phpunit/phpunit": "^11.0|^12.5"
+        "phpunit/phpunit": "^11.0|^12.5",
+        "binarytorch/larecipe": "^2.8"
     }
 }

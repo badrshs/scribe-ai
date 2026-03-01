@@ -103,3 +103,32 @@ php artisan migrate
 | Reference stage | `src/Services/Pipeline/Stages/ScrapeStage.php` |
 | Reference driver | `src/Services/Publishing/Drivers/LogDriver.php` |
 | Package config | `config/scribe-ai.php` |
+| AI Provider contract | `src/Contracts/AiProvider.php` |
+| AI Provider manager | `src/Services/Ai/AiProviderManager.php` |
+| Extension manager | `src/Services/Extensions/ExtensionManager.php` |
+| Content source manager | `src/Services/Sources/ContentSourceManager.php` |
+| Events | `src/Events/*.php` |
+| Documentation (LaRecipe) | `resources/docs/1.0/` |
+
+## Documentation (`resources/docs/1.0/`)
+
+The project uses [LaRecipe](https://larecipe.saleem.dev) for documentation. All docs live in `resources/docs/1.0/` as Markdown files with LaRecipe conventions (`<a name="section"></a>` anchors, `> {primary}` / `> {info}` / `> {warning}` callouts).
+
+**When making code changes, always update the corresponding documentation page(s).** The sidebar navigation is defined in `resources/docs/1.0/index.md`. Current doc pages:
+
+| Section | Pages |
+|---------|-------|
+| Getting Started | `overview`, `installation`, `quick-start`, `configuration` |
+| Core Concepts | `architecture`, `pipeline`, `stages`, `payload`, `run-tracking` |
+| AI Providers | `ai-providers`, `provider-openai`, `provider-claude`, `provider-gemini`, `provider-ollama`, `provider-piapi`, `provider-custom` |
+| Content Sources | `content-sources`, `source-web`, `source-rss`, `source-text`, `source-custom` |
+| Publishing | `publishing`, `driver-log`, `driver-telegram`, `driver-facebook`, `driver-blogger`, `driver-wordpress`, `driver-custom` |
+| Events | `events`, `events-pipeline`, `events-stages` |
+| Extensions | `extensions`, `extension-telegram-approval`, `extension-custom` |
+| Advanced | `categories`, `image-optimization`, `queues`, `commands`, `testing` |
+
+**Rules:**
+- If you add a new stage, driver, provider, event, or extension — create a new doc page and add it to `index.md`.
+- If you change config keys, update `configuration.md` and any affected pages.
+- If you add or modify an Artisan command, update `commands.md`.
+- Keep code examples in docs in sync with actual source code.

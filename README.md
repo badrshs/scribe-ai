@@ -350,7 +350,8 @@ $payload = ContentPipeline::process(
 // Pass categories via the payload
 $payload = new ContentPayload(
     sourceUrl: 'https://example.com/article',
-    categories: [1 => 'Technology', 2 => 'Health', 3 => 'Business'],
+    categories: [1 => 'Technology', 2 => 'Health', 3 => 'Business'], // Optional: The AI will choose the category that best fits your article.
+
 );
 $result = app(Pipeline::class)->process($payload);
 
