@@ -7,15 +7,15 @@ use Bader\ContentPublisher\Console\Commands\ProcessUrlCommand;
 use Bader\ContentPublisher\Console\Commands\PublishApprovedCommand;
 use Bader\ContentPublisher\Console\Commands\PublishArticleCommand;
 use Bader\ContentPublisher\Console\Commands\ResumeRunCommand;
-use Bader\ContentPublisher\Extensions\TelegramApproval\CallbackHandler;
 use Bader\ContentPublisher\Extensions\TelegramApproval\RssReviewCommand;
 use Bader\ContentPublisher\Extensions\TelegramApproval\SetWebhookCommand;
-use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramApprovalService;
+use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramApprovalExtension;
 use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramPollCommand;
 use Bader\ContentPublisher\Services\Ai\AiService;
 use Bader\ContentPublisher\Services\Ai\ContentRewriter;
 use Bader\ContentPublisher\Services\Ai\ImageGenerator;
 use Bader\ContentPublisher\Services\Ai\SeoSuggester;
+use Bader\ContentPublisher\Services\ExtensionManager;
 use Bader\ContentPublisher\Services\ImageOptimizer;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Bader\ContentPublisher\Services\Publishing\PublisherManager;
@@ -47,10 +47,20 @@ class ContentPublisherServiceProvider extends ServiceProvider
         $this->app->alias(ContentPipeline::class, 'scribe-pipeline');
         $this->app->alias(ContentSourceManager::class, 'scribe-source');
 
-        // ── Telegram Approval Extension ──────────────────────────────
-        if ($this->isTelegramApprovalEnabled()) {
-            $this->app->singleton(TelegramApprovalService::class);
-            $this->app->singleton(CallbackHandler::class);
+        // ── Extension Manager ────────────────────────────────────────
+        $this->app->singleton(ExtensionManager::class);
+
+        /** @var ExtensionManager $extensions */
+        $extensions = $this->app->make(ExtensionManager::class);
+
+        // Register built-in extensions
+        $extensions->register(new TelegramApprovalExtension(), $this->app);
+
+        // Register user-defined extensions from config
+        foreach (config('scribe-ai.custom_extensions', []) as $extensionClass) {
+            if (class_exists($extensionClass)) {
+                $extensions->register(new $extensionClass(), $this->app);
+            }
         }
     }
 
@@ -86,10 +96,14 @@ class ContentPublisherServiceProvider extends ServiceProvider
             $this->commands($commands);
         }
 
-        // Load webhook route when extension is enabled and webhook URL is set
-        if ($this->isTelegramApprovalEnabled() && config('scribe-ai.extensions.telegram_approval.webhook_url')) {
+        // Load webhook route when extension is enabled
+        // (webhook URL is auto-resolved from APP_URL if not set explicitly)
+        if ($this->isTelegramApprovalEnabled()) {
             $this->loadRoutesFrom(__DIR__ . '/../routes/telegram-webhook.php');
         }
+
+        // Boot all registered extensions
+        $this->app->make(ExtensionManager::class)->bootAll($this->app);
     }
 
     /**

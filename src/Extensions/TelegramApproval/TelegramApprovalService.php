@@ -22,6 +22,8 @@ class TelegramApprovalService
 
     protected string $baseUrl;
 
+    protected bool $webhookEnsured = false;
+
     public function __construct()
     {
         $this->botToken = config('scribe-ai.extensions.telegram_approval.bot_token')
@@ -43,6 +45,8 @@ class TelegramApprovalService
      */
     public function sendForApproval(int $stagedContentId, string $title, string $url, ?string $summary = null, ?string $category = null): int
     {
+        $this->ensureWebhookSet();
+
         $lines = ["<b>📰 New Article for Review</b>"];
         $lines[] = '';
         $lines[] = "<b>Title:</b> " . e($title);
@@ -142,6 +146,65 @@ class TelegramApprovalService
         }
 
         return $response->json('result', []);
+    }
+
+    /**
+     * Resolve the webhook URL from config or fall back to the app URL.
+     *
+     * Priority: TELEGRAM_WEBHOOK_URL > app.url + webhook_path
+     */
+    public function resolveWebhookUrl(): ?string
+    {
+        $explicit = config('scribe-ai.extensions.telegram_approval.webhook_url');
+
+        if ($explicit) {
+            return $explicit;
+        }
+
+        $appUrl = rtrim((string) config('app.url'), '/');
+        $path = ltrim(config('scribe-ai.extensions.telegram_approval.webhook_path', 'api/scribe/telegram/webhook'), '/');
+
+        if ($appUrl && $appUrl !== 'http://localhost') {
+            return "{$appUrl}/{$path}";
+        }
+
+        return null;
+    }
+
+    /**
+     * Automatically set the Telegram webhook on first send (once per process).
+     *
+     * Uses the explicit TELEGRAM_WEBHOOK_URL if set, otherwise falls back
+     * to APP_URL + the configured webhook path. Skipped entirely when no
+     * usable URL can be resolved (e.g. local development without ngrok).
+     */
+    protected function ensureWebhookSet(): void
+    {
+        if ($this->webhookEnsured) {
+            return;
+        }
+
+        $this->webhookEnsured = true;
+
+        $webhookUrl = $this->resolveWebhookUrl();
+
+        if (! $webhookUrl) {
+            Log::info('TelegramApproval: no webhook URL resolved, skipping auto-setup (use polling instead)');
+
+            return;
+        }
+
+        try {
+            $secret = config('scribe-ai.extensions.telegram_approval.webhook_secret');
+            $this->setWebhook($webhookUrl, $secret);
+
+            Log::info('TelegramApproval: webhook auto-configured', ['url' => $webhookUrl]);
+        } catch (\Throwable $e) {
+            Log::warning('TelegramApproval: auto-webhook setup failed, falling back to polling', [
+                'url' => $webhookUrl,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

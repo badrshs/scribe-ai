@@ -33,6 +33,7 @@ Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover ima
 - [Architecture](#architecture)
 - [Extensions](#extensions)
   - [Telegram Approval (RSS → AI → Telegram → Pipeline)](#telegram-approval-rss--ai--telegram--pipeline)
+  - [Creating Custom Extensions](#creating-custom-extensions)
 - [Testing](#testing)
 - [License](#license)
 
@@ -137,7 +138,7 @@ WORDPRESS_PASSWORD=
 TELEGRAM_APPROVAL_ENABLED=false         # enable the RSS→Telegram workflow
 TELEGRAM_APPROVAL_BOT_TOKEN=            # defaults to TELEGRAM_BOT_TOKEN
 TELEGRAM_APPROVAL_CHAT_ID=              # defaults to TELEGRAM_CHAT_ID
-TELEGRAM_WEBHOOK_URL=                   # set for webhook mode
+TELEGRAM_WEBHOOK_URL=                   # auto-resolved from APP_URL if empty
 TELEGRAM_WEBHOOK_SECRET=                # optional verification secret
 ```
 
@@ -614,12 +615,21 @@ php artisan scribe:telegram-poll --once
 ```
 
 **Option B: Webhook** (production — Telegram pushes decisions to your app)
+
+The webhook is **auto-configured** when the first approval message is sent. By default it uses your `APP_URL` combined with the webhook path (`api/scribe/telegram/webhook`).
+
+Override the URL only when `APP_URL` doesn't match your public-facing address (e.g. behind a reverse proxy or using ngrok):
+
 ```env
+# Optional — only needed when APP_URL is not your public URL
 TELEGRAM_WEBHOOK_URL=https://yourapp.com/api/scribe/telegram/webhook
 TELEGRAM_WEBHOOK_SECRET=your-random-secret
 ```
+
+You can also set or remove the webhook manually:
 ```bash
 php artisan scribe:telegram-set-webhook
+php artisan scribe:telegram-set-webhook --remove
 ```
 
 When you tap **✅ Approve** in Telegram:
@@ -635,6 +645,7 @@ All extension code lives in a self-contained directory:
 
 ```
 src/Extensions/TelegramApproval/
+    TelegramApprovalExtension.php   # Extension contract implementation
     TelegramApprovalService.php     # Telegram Bot API interactions
     CallbackHandler.php             # Processes approve/reject decisions
     RssReviewCommand.php            # scribe:rss-review
@@ -643,6 +654,77 @@ src/Extensions/TelegramApproval/
     TelegramWebhookController.php   # HTTP controller for webhook
 routes/
     telegram-webhook.php            # Webhook route definition
+```
+
+### Creating Custom Extensions
+
+You can build your own extensions on top of the core pipeline. Every extension implements `Bader\ContentPublisher\Contracts\Extension`:
+
+```php
+use Bader\ContentPublisher\Contracts\Extension;
+use Illuminate\Contracts\Foundation\Application;
+
+class SlackApprovalExtension implements Extension
+{
+    public function name(): string
+    {
+        return 'slack-approval';
+    }
+
+    public function isEnabled(): bool
+    {
+        return (bool) config('scribe-ai.extensions.slack_approval.enabled', false);
+    }
+
+    public function register(Application $app): void
+    {
+        $app->singleton(SlackApprovalService::class);
+    }
+
+    public function boot(Application $app): void
+    {
+        // Register commands, routes, event listeners, etc.
+        if ($app->runningInConsole()) {
+            // $app->make(Kernel::class)  -- register artisan commands
+        }
+    }
+}
+```
+
+Register your extension in `config/scribe-ai.php`:
+
+```php
+'custom_extensions' => [
+    App\Extensions\SlackApprovalExtension::class,
+],
+```
+
+Or register it programmatically from any service provider:
+
+```php
+use Bader\ContentPublisher\Services\ExtensionManager;
+
+public function register(): void
+{
+    $this->app->booted(function () {
+        app(ExtensionManager::class)
+            ->register(new SlackApprovalExtension(), $this->app);
+    });
+}
+```
+
+The `ExtensionManager` calls `register()` and `boot()` only when `isEnabled()` returns `true`, so disabled extensions have zero overhead.
+
+You can also query the registry at runtime:
+
+```php
+use Bader\ContentPublisher\Services\ExtensionManager;
+
+$manager = app(ExtensionManager::class);
+
+$manager->all();              // all registered extensions
+$manager->enabled();          // only enabled ones
+$manager->isEnabled('slack-approval');  // check by name
 ```
 
 ---

@@ -236,6 +236,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom Extensions
+    |--------------------------------------------------------------------------
+    |
+    | Register your own extension classes here. Each class must implement
+    | Bader\ContentPublisher\Contracts\Extension. Extensions are loaded
+    | only when their isEnabled() method returns true.
+    |
+    | Example:
+    |   'custom_extensions' => [
+    |       App\Extensions\SlackApprovalExtension::class,
+    |   ],
+    |
+    */
+
+    'custom_extensions' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Extensions
     |--------------------------------------------------------------------------
     |
@@ -268,6 +286,11 @@ return [
             'enabled' => (bool) env('TELEGRAM_APPROVAL_ENABLED', false),
             'bot_token' => env('TELEGRAM_APPROVAL_BOT_TOKEN'),
             'chat_id' => env('TELEGRAM_APPROVAL_CHAT_ID'),
+
+            // Webhook URL for receiving approval callbacks from Telegram.
+            // If not set, the package auto-resolves from APP_URL + webhook_path.
+            // Set explicitly only when APP_URL is not your public-facing URL
+            // (e.g. behind a reverse proxy, or using ngrok for local dev).
             'webhook_url' => env('TELEGRAM_WEBHOOK_URL'),
             'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
             'webhook_path' => env('TELEGRAM_WEBHOOK_PATH', 'api/scribe/telegram/webhook'),
