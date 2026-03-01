@@ -1,7 +1,11 @@
 <p align="center">
+  <img src="https://raw.githubusercontent.com/badrshs/scribe-ai/master/logo.jpg" alt="Scribe AI" width="200">
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/github/v/tag/badrshs/scribe-ai?label=version&style=flat-square" alt="Version">
   <img src="https://img.shields.io/packagist/php-v/badrshs/scribe-ai?style=flat-square" alt="PHP Version">
-  <img src="https://img.shields.io/github/license/badrshs/scribe-ai?style=flat-square" alt="License">
+  <a href="https://github.com/badrshs/scribe-ai/blob/master/LICENSE"><img src="https://img.shields.io/github/license/badrshs/scribe-ai?style=flat-square&color=brightgreen" alt="MIT License"></a>
 </p>
 
 # Scribe AI
@@ -11,6 +15,13 @@
 Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover image, optimises it for the web, saves the article to your database, and publishes it to one or more channels. One command. Zero manual steps.
 
 > **Built for Laravel 11 & 12** · **PHP 8.2+** · **Queue-first** · **Fully extensible**
+
+<p align="center">
+  <a href="https://badrshs.github.io/scribe-ai">📖 Full Documentation</a>
+</p>
+
+> The full documentation covers every stage, driver, provider, event, and extension in detail — with code examples, config references, and step-by-step guides for building custom integrations.
+> **[badrshs.github.io/scribe-ai](https://badrshs.github.io/scribe-ai)**
 
 ---
 
@@ -916,4 +927,10 @@ Integration tests that call the real OpenAI API are excluded from the default te
 
 ## License
 
-MIT — see [LICENSE](https://github.com/badrshs/scribe-ai/blob/master/LICENSE) for details.
+Scribe AI is open-source software released under the **MIT License** — free to use, modify, and distribute in personal and commercial projects.
+
+See the [LICENSE](LICENSE) file for the full license text.
+
+---
+
+<p align="center">Made with ❤️ for the Laravel community · <a href="https://badrshs.github.io/scribe-ai">Documentation</a> · <a href="https://github.com/badrshs/scribe-ai">GitHub</a></p>

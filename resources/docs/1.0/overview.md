@@ -1,5 +1,7 @@
 # Overview
 
+<p align="center"><img src="https://raw.githubusercontent.com/badrshs/scribe-ai/master/logo.jpg" alt="Scribe AI" width="180"></p>
+
 ---
 
 - [What is Scribe AI?](#what-is-scribe-ai)
