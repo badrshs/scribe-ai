@@ -13,10 +13,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3, 8.4]
-        stability: [prefer-stable]
+        include:
+          - php: '8.2'
+            stability: prefer-stable
+          - php: '8.3'
+            stability: prefer-stable
+          - php: '8.4'
+            stability: prefer-stable
 
-    name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
+    name: PHP ${{ matrix.php }}
 
     steps:
       - name: Checkout code
