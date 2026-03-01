@@ -1,4 +1,4 @@
-# Gemini Provider
+﻿# Gemini Provider
 
 ---
 
@@ -37,12 +37,12 @@ Provider-specific config in `config/scribe-ai.php`:
 ## Supported Models
 
 ### Chat/Text
-- `gemini-2.0-flash` — fast, high quality (recommended)
-- `gemini-1.5-pro` — larger context window
-- `gemini-1.5-flash` — fast and efficient
+- `gemini-2.0-flash` - fast, high quality (recommended)
+- `gemini-1.5-pro` - larger context window
+- `gemini-1.5-flash` - fast and efficient
 
 ### Image Generation
-- `imagen-3.0-generate-002` — Google's Imagen model
+- `imagen-3.0-generate-002` - Google's Imagen model
 - Any model supporting `responseModalities: ['TEXT', 'IMAGE']`
 
 <a name="how-it-works"></a>

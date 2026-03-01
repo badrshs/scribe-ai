@@ -1,4 +1,4 @@
-# Pipeline Events
+﻿# Pipeline Events
 
 ---
 
@@ -44,7 +44,7 @@ use Badr\ScribeAi\Events\PipelineCompleted;
 
 Event::listen(PipelineCompleted::class, function (PipelineCompleted $event) {
     $article = $event->payload->article;
-    Log::info("Pipeline completed: article #{$article?->id} — {$article?->title}");
+    Log::info("Pipeline completed: article #{$article?->id} - {$article?->title}");
 });
 ```
 
@@ -72,9 +72,9 @@ Event::listen(PipelineFailed::class, function (PipelineFailed $event) {
 
 **This event fires in three scenarios:**
 
-1. **Exception** — a stage throws an exception and `halt_on_error` is true
-2. **Rejection in loop** — a stage sets `rejected: true` on the payload (mid-pipeline)
-3. **Rejection post-loop** — payload is rejected after all stages complete
+1. **Exception** - a stage throws an exception and `halt_on_error` is true
+2. **Rejection in loop** - a stage sets `rejected: true` on the payload (mid-pipeline)
+3. **Rejection post-loop** - payload is rejected after all stages complete
 
 <a name="dispatch-timing"></a>
 ## Dispatch Timing

@@ -1,4 +1,4 @@
-# OpenAI Provider
+﻿# OpenAI Provider
 
 ---
 
@@ -45,15 +45,15 @@ Provider-specific config in `config/scribe-ai.php`:
 ## Supported Models
 
 ### Chat/Text
-- `gpt-4o` — flagship model, excellent quality
-- `gpt-4o-mini` — fast and cost-effective (recommended default)
-- `o1`, `o3` — reasoning models (use `max_completion_tokens` parameter automatically)
-- `gpt-4-turbo` — previous generation
+- `gpt-4o` - flagship model, excellent quality
+- `gpt-4o-mini` - fast and cost-effective (recommended default)
+- `o1`, `o3` - reasoning models (use `max_completion_tokens` parameter automatically)
+- `gpt-4-turbo` - previous generation
 
 ### Image Generation
-- `dall-e-3` — high-quality images, 1024×1024 or 1792×1024
-- `dall-e-2` — faster, lower quality
-- `gpt-image-1` — newer native GPT image generation
+- `dall-e-3` - high-quality images, 1024×1024 or 1792×1024
+- `dall-e-2` - faster, lower quality
+- `gpt-image-1` - newer native GPT image generation
 
 <a name="chat-completions"></a>
 ## Chat Completions

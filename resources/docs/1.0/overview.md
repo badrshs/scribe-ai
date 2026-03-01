@@ -1,4 +1,4 @@
-# Overview
+﻿# Overview
 
 <p align="center"><img src="https://raw.githubusercontent.com/badrshs/scribe-ai/master/logo.jpg" alt="Scribe AI" width="180"></p>
 
@@ -12,7 +12,7 @@
 <a name="what-is-scribe-ai"></a>
 ## What is Scribe AI?
 
-**Scribe AI** is a Laravel package that turns any URL into a published article — automatically. It scrapes a webpage, rewrites the content with AI, generates a cover image, optimises it for the web, saves the article to your database, and publishes it to one or more channels. One command. Zero manual steps.
+**Scribe AI** is a Laravel package that turns any URL into a published article - automatically. It scrapes a webpage, rewrites the content with AI, generates a cover image, optimises it for the web, saves the article to your database, and publishes it to one or more channels. One command. Zero manual steps.
 
 ```bash
 php artisan scribe:process-url https://example.com/article --sync
@@ -26,11 +26,11 @@ php artisan scribe:process-url https://example.com/article --sync
 | Feature | Description |
 |---------|-------------|
 | **Automated Pipeline** | Six-stage content pipeline: Scrape → AI Rewrite → Image → Optimise → Save → Publish |
-| **Multi-AI Providers** | OpenAI, Claude, Gemini, Ollama, PiAPI (Flux) — switch with one env var |
+| **Multi-AI Providers** | OpenAI, Claude, Gemini, Ollama, PiAPI (Flux) - switch with one env var |
 | **Multiple Publishers** | Telegram, Facebook, Blogger, WordPress, and a Log driver for development |
-| **Content Sources** | Web scraping, RSS feeds, raw text — auto-detected or explicitly set |
+| **Content Sources** | Web scraping, RSS feeds, raw text - auto-detected or explicitly set |
 | **Run Tracking** | Every pipeline execution is persisted and can be resumed from failure |
-| **Event System** | Laravel events fired at every stage — hook into the content lifecycle |
+| **Event System** | Laravel events fired at every stage - hook into the content lifecycle |
 | **Extension System** | Telegram approval workflow built-in; create your own extensions |
 | **Image Optimization** | Auto-resize, compress, and convert to WebP |
 | **Install Wizard** | Interactive `scribe:install` command configures everything |

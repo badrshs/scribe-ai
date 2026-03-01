@@ -1,4 +1,4 @@
-# Telegram Approval Extension
+﻿# Telegram Approval Extension
 
 ---
 
@@ -152,4 +152,4 @@ RSS Feed
         └── PublishStage → channels
 ```
 
-> {primary} The extension works seamlessly with the core pipeline — approval just controls **when** the pipeline runs.
+> {primary} The extension works seamlessly with the core pipeline - approval just controls **when** the pipeline runs.

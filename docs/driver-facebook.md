@@ -1,4 +1,4 @@
-# Facebook Driver
+﻿# Facebook Driver
 
 ---
 
@@ -50,7 +50,7 @@ PUBLISHER_CHANNELS=facebook
 
 Posts include:
 
-- **Category hashtag** — e.g., `#Technology`
+- **Category hashtag** - e.g., `#Technology`
 - **Article title**
 - **Custom message** (if passed via options)
 

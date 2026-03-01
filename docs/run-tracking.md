@@ -1,4 +1,4 @@
-# Run Tracking & Resume
+﻿# Run Tracking & Resume
 
 ---
 
@@ -12,7 +12,7 @@
 <a name="overview"></a>
 ## Overview
 
-Run tracking persists a `PipelineRun` record for every pipeline execution. After each stage completes, the payload is snapshotted to the database. If a stage fails, you can resume from exactly where it left off — no duplicated API calls, no re-scraping.
+Run tracking persists a `PipelineRun` record for every pipeline execution. After each stage completes, the payload is snapshotted to the database. If a stage fails, you can resume from exactly where it left off - no duplicated API calls, no re-scraping.
 
 > {primary} Run tracking requires the `pipeline_runs` migration. Publish and run it:
 > `php artisan vendor:publish --tag=scribe-ai-migrations && php artisan migrate`
@@ -106,13 +106,13 @@ Resuming Pipeline Run #42
   Resuming from: stage 2
 
   [3/6] GenerateImage  …
-        ✓ completed — generated articles/abc123.png
+        ✓ completed - generated articles/abc123.png
   [4/6] OptimiseImage  …
-        ✓ completed — optimised to articles/abc123.webp
+        ✓ completed - optimised to articles/abc123.webp
   [5/6] CreateArticle  …
-        ✓ completed — article #15
+        ✓ completed - article #15
   [6/6] Publish  …
-        ✓ completed — 2 channels
+        ✓ completed - 2 channels
 ```
 
 <a name="disabling-tracking"></a>

@@ -1,4 +1,4 @@
-# Claude Provider
+﻿# Claude Provider
 
 ---
 
@@ -37,10 +37,10 @@ Provider-specific config in `config/scribe-ai.php`:
 <a name="supported-models"></a>
 ## Supported Models
 
-- `claude-sonnet-4-20250514` — balanced speed and quality (recommended)
-- `claude-3-5-sonnet-20241022` — previous generation, still excellent
-- `claude-3-opus-20240229` — highest quality, slower
-- `claude-3-haiku-20240307` — fastest, most cost-effective
+- `claude-sonnet-4-20250514` - balanced speed and quality (recommended)
+- `claude-3-5-sonnet-20241022` - previous generation, still excellent
+- `claude-3-opus-20240229` - highest quality, slower
+- `claude-3-haiku-20240307` - fastest, most cost-effective
 
 Set the model via the content model config:
 
@@ -49,7 +49,7 @@ OPENAI_CONTENT_MODEL=claude-sonnet-4-20250514
 OPENAI_FALLBACK_MODEL=claude-3-haiku-20240307
 ```
 
-> {info} The `OPENAI_CONTENT_MODEL` env var is shared across all providers — it specifies which model string to send, regardless of the provider.
+> {info} The `OPENAI_CONTENT_MODEL` env var is shared across all providers - it specifies which model string to send, regardless of the provider.
 
 <a name="how-it-works"></a>
 ## How It Works
@@ -60,7 +60,7 @@ The Claude provider automatically translates between the OpenAI message format (
 2. **User/assistant messages** → passed directly via `messages` array
 3. **Response** → normalized to OpenAI format: `['choices' => [['message' => ['content' => '...']]]]`
 
-This translation is transparent — stages and services don't need to know which provider is active.
+This translation is transparent - stages and services don't need to know which provider is active.
 
 <a name="json-mode"></a>
 ## JSON Mode
@@ -76,11 +76,11 @@ The `AiService::completeJson()` method strips any markdown fences from the respo
 <a name="limitations"></a>
 ## Limitations
 
-- **No image generation** — Claude does not support image generation. If using Claude as the default provider, set a separate image provider:
+- **No image generation** - Claude does not support image generation. If using Claude as the default provider, set a separate image provider:
 
 ```dotenv
 AI_PROVIDER=claude
 AI_IMAGE_PROVIDER=openai
 ```
 
-- **Rate limits** — Anthropic has per-model rate limits. The pipeline uses model fallback if the primary model fails.
+- **Rate limits** - Anthropic has per-model rate limits. The pipeline uses model fallback if the primary model fails.

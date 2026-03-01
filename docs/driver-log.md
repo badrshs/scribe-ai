@@ -1,4 +1,4 @@
-# Log Driver
+﻿# Log Driver
 
 ---
 
@@ -47,9 +47,9 @@ PUBLISHER_DEFAULT_CHANNEL=log
 <a name="when-to-use"></a>
 ## When To Use
 
-- **Development** — verify the pipeline works end-to-end without external services
-- **Testing** — the log driver is the default for test suites
-- **Debugging** — add `log` alongside real channels to log all publish attempts
+- **Development** - verify the pipeline works end-to-end without external services
+- **Testing** - the log driver is the default for test suites
+- **Debugging** - add `log` alongside real channels to log all publish attempts
 
 ```dotenv
 # Log alongside real channels

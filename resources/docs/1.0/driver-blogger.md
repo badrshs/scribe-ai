@@ -1,4 +1,4 @@
-# Blogger Driver
+﻿# Blogger Driver
 
 ---
 
@@ -58,9 +58,9 @@ The driver sends a `POST` to `https://www.googleapis.com/blogger/v3/blogs/{blog_
 
 **Options:**
 
-- `title` — override the article title
-- `content` — override the article content
-- `draft` — set to `true` to create as draft instead of publishing
+- `title` - override the article title
+- `content` - override the article content
+- `draft` - set to `true` to create as draft instead of publishing
 
 ```php
 $driver->publish($article, ['draft' => true]);
@@ -71,8 +71,8 @@ $driver->publish($article, ['draft' => true]);
 
 Labels are automatically built from:
 
-1. **Article category** — the category name (e.g., "Technology")
-2. **Article tags** — all associated tag names
+1. **Article category** - the category name (e.g., "Technology")
+2. **Article tags** - all associated tag names
 
 These map directly to Blogger's label system for post categorisation.
 

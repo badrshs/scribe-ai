@@ -1,4 +1,4 @@
-# Stage Events
+﻿# Stage Events
 
 ---
 
@@ -134,16 +134,16 @@ Event::listen(ArticlePublished::class, function ($event) {
 });
 ```
 
-> {primary} If publishing to 3 channels, this event fires 3 times — once per channel.
+> {primary} If publishing to 3 channels, this event fires 3 times - once per channel.
 
 <a name="skipped-stages"></a>
 ## Skipped Stages
 
 Stage events are **not** fired when a stage skips. Stages skip when:
 
-- `ScrapeStage` — `rawContent` is already set on the payload
-- `GenerateImageStage` — `imagePrompt` is empty/null
-- `OptimizeImageStage` — `imagePath` is empty/null or optimisation is disabled
-- `PublishStage` — no article is set on the payload
+- `ScrapeStage` - `rawContent` is already set on the payload
+- `GenerateImageStage` - `imagePrompt` is empty/null
+- `OptimizeImageStage` - `imagePath` is empty/null or optimisation is disabled
+- `PublishStage` - no article is set on the payload
 
 Design your listeners to handle the absence of these events gracefully.

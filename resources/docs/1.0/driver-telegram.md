@@ -1,4 +1,4 @@
-# Telegram Driver
+﻿# Telegram Driver
 
 ---
 
@@ -57,10 +57,10 @@ Short description (max 200 chars)...
 📎 https://example.com/article
 ```
 
-- **Title** — bold
-- **Description** — truncated to 200 characters
-- **Tags** — hashtag format
-- **Source link** — optional, from the article's source URL
+- **Title** - bold
+- **Description** - truncated to 200 characters
+- **Tags** - hashtag format
+- **Source link** - optional, from the article's source URL
 
 The `disable_web_page_preview` is set to `false`, so Telegram renders a link preview.
 

@@ -1,4 +1,4 @@
-# Docsify GitHub Pages — Scribe AI Docs
+﻿# Docsify GitHub Pages - Scribe AI Docs
 
 This folder serves the documentation site via [GitHub Pages](https://pages.github.com/) using [Docsify](https://docsify.js.org/).
 

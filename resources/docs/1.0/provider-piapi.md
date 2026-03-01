@@ -1,4 +1,4 @@
-# PiAPI Provider (Flux)
+﻿# PiAPI Provider (Flux)
 
 ---
 
@@ -12,7 +12,7 @@
 <a name="overview"></a>
 ## Overview
 
-The PiAPI provider generates images using the Flux model via [piapi.ai](https://piapi.ai). It is an **image-only** provider — it does not support text/chat completions. Use it as a dedicated image provider alongside any text provider.
+The PiAPI provider generates images using the Flux model via [piapi.ai](https://piapi.ai). It is an **image-only** provider - it does not support text/chat completions. Use it as a dedicated image provider alongside any text provider.
 
 <a name="configuration"></a>
 ## Configuration
@@ -93,9 +93,9 @@ The provider parses this into separate width and height parameters for the Flux 
 <a name="limitations"></a>
 ## Limitations
 
-- **Image only** — calling `chat()` throws a `RuntimeException`. Never set `AI_PROVIDER=piapi`.
-- **Async** — generation takes 10-60 seconds depending on queue depth.
-- **Rate limits** — governed by your PiAPI plan.
+- **Image only** - calling `chat()` throws a `RuntimeException`. Never set `AI_PROVIDER=piapi`.
+- **Async** - generation takes 10-60 seconds depending on queue depth.
+- **Rate limits** - governed by your PiAPI plan.
 
 **Recommended setup:**
 

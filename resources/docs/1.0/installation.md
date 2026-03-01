@@ -1,4 +1,4 @@
-# Installation
+﻿# Installation
 
 ---
 
@@ -25,14 +25,14 @@ php artisan scribe:install
 
 The wizard will guide you through:
 
-1. **AI Provider** — Choose between OpenAI, Claude, Gemini, or Ollama
-2. **API Keys** — Securely enter your provider credentials
-3. **Image Provider** — Optionally choose a separate image provider (OpenAI, Gemini, PiAPI)
-4. **Content Model** — Set the AI model for content rewriting
-5. **Output Language** — Choose the language for generated articles
-6. **Publish Channels** — Select which platforms to publish to (log, Telegram, Facebook, Blogger, WordPress)
-7. **Channel Credentials** — Enter tokens and IDs for selected channels
-8. **Pipeline Settings** — Enable/disable run tracking, image optimization, Telegram approval
+1. **AI Provider** - Choose between OpenAI, Claude, Gemini, or Ollama
+2. **API Keys** - Securely enter your provider credentials
+3. **Image Provider** - Optionally choose a separate image provider (OpenAI, Gemini, PiAPI)
+4. **Content Model** - Set the AI model for content rewriting
+5. **Output Language** - Choose the language for generated articles
+6. **Publish Channels** - Select which platforms to publish to (log, Telegram, Facebook, Blogger, WordPress)
+7. **Channel Credentials** - Enter tokens and IDs for selected channels
+8. **Pipeline Settings** - Enable/disable run tracking, image optimization, Telegram approval
 
 All values are written to your `.env` file. Existing values are updated; new ones are appended.
 

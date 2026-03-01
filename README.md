@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <img src="https://raw.githubusercontent.com/badrshs/scribe-ai/master/logo.jpg" alt="Scribe AI" width="200">
 </p>
 
@@ -10,7 +10,7 @@
 
 # Scribe AI
 
-**A Laravel package that turns any URL into a published article — automatically.**
+**A Laravel package that turns any URL into a published article - automatically.**
 
 Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover image, optimises it for the web, saves the article to your database, and publishes it to one or more channels. One command. Zero manual steps.
 
@@ -20,7 +20,7 @@ Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover ima
   <a href="https://badrshs.github.io/scribe-ai">📖 Full Documentation</a>
 </p>
 
-> The full documentation covers every stage, driver, provider, event, and extension in detail — with code examples, config references, and step-by-step guides for building custom integrations.
+> The full documentation covers every stage, driver, provider, event, and extension in detail - with code examples, config references, and step-by-step guides for building custom integrations.
 > **[badrshs.github.io/scribe-ai](https://badrshs.github.io/scribe-ai)**
 
 ---
@@ -60,7 +60,7 @@ composer require badrshs/scribe-ai
 
 ### Interactive Setup (Recommended)
 
-Run the install wizard — it publishes config/migrations, asks for your AI provider & API keys, configures publish channels, and writes everything to `.env`:
+Run the install wizard - it publishes config/migrations, asks for your AI provider & API keys, configures publish channels, and writes everything to `.env`:
 
 ```bash
 php artisan scribe:install
@@ -87,7 +87,7 @@ Add your AI provider key to `.env`:
 AI_PROVIDER=openai
 OPENAI_API_KEY=sk-...
 
-# Or use Claude, Gemini, or Ollama — see "AI Providers" below
+# Or use Claude, Gemini, or Ollama - see "AI Providers" below
 ```
 
 Run the pipeline on any URL:
@@ -186,17 +186,17 @@ TELEGRAM_WEBHOOK_SECRET=                # optional verification secret
 
 ## AI Providers
 
-Scribe AI supports **multiple AI backends** via a driver-based `AiProviderManager`. Switch providers with a single env var — all internal code stays the same.
+Scribe AI supports **multiple AI backends** via a driver-based `AiProviderManager`. Switch providers with a single env var - all internal code stays the same.
 
 ### Built-in providers
 
 | Provider | Text/Chat | Image Gen | Env Key |
 |----------|-----------|-----------|---------|
 | **OpenAI** | GPT-4o, GPT-4o-mini, o1, o3, etc. | DALL-E 3 | `OPENAI_API_KEY` |
-| **Claude** | Claude Sonnet/Opus/Haiku | — | `ANTHROPIC_API_KEY` |
+| **Claude** | Claude Sonnet/Opus/Haiku | - | `ANTHROPIC_API_KEY` |
 | **Gemini** | Gemini 2.0 Flash, Pro, etc. | Imagen | `GEMINI_API_KEY` |
-| **Ollama** | Llama, Mistral, Phi, etc. (local) | — | `OLLAMA_HOST` |
-| **PiAPI** | — | Flux (via piapi.ai) | `PIAPI_API_KEY` |
+| **Ollama** | Llama, Mistral, Phi, etc. (local) | - | `OLLAMA_HOST` |
+| **PiAPI** | - | Flux (via piapi.ai) | `PIAPI_API_KEY` |
 
 ### Switching providers
 
@@ -438,14 +438,14 @@ When categories **are** provided, the AI selects the most appropriate one from t
 
 ### How categories are resolved
 
-The pipeline resolves categories in priority order — the first non-empty source wins:
+The pipeline resolves categories in priority order - the first non-empty source wins:
 
 | Priority | Source | Example |
 |----------|--------|---------|
-| 1 | **Payload** — passed directly in code or CLI | `--categories="1:Tech,2:Health"` |
-| 2 | **Database** — `categories` table | Rows seeded or added via your app |
-| 3 | **Config** — `scribe-ai.categories` array | `[1 => 'Tech', 2 => 'Health']` |
-| 4 | **None** — empty list | AI writes without category selection |
+| 1 | **Payload** - passed directly in code or CLI | `--categories="1:Tech,2:Health"` |
+| 2 | **Database** - `categories` table | Rows seeded or added via your app |
+| 3 | **Config** - `scribe-ai.categories` array | `[1 => 'Tech', 2 => 'Health']` |
+| 4 | **None** - empty list | AI writes without category selection |
 
 ### Passing categories
 
@@ -476,7 +476,7 @@ app(Pipeline::class)->process($payload);
 
 ## Content Sources (Input Drivers)
 
-The **input** side of the pipeline uses the same extensible driver pattern as publishing. `ContentSourceManager` resolves a content-source driver for each identifier (URL, feed, raw text) — either by **auto-detection** or by explicit override.
+The **input** side of the pipeline uses the same extensible driver pattern as publishing. `ContentSourceManager` resolves a content-source driver for each identifier (URL, feed, raw text) - either by **auto-detection** or by explicit override.
 
 ```
 Input:      ContentSourceManager  → web, rss, text, your custom drivers
@@ -598,7 +598,7 @@ Every pipeline execution is automatically persisted to the `pipeline_runs` table
 1. When `process()` starts, a `PipelineRun` record is created with status `Pending`.
 2. As each stage completes, the run's `current_stage_index` and `payload_snapshot` are updated.
 3. On success → status becomes `Completed`. On rejection → `Rejected`. On uncaught exception → `Failed` (with `error_message` and `error_stage` recorded).
-4. Failed runs can be **resumed** — the pipeline rehydrates the payload from the last snapshot and continues from the failed stage.
+4. Failed runs can be **resumed** - the pipeline rehydrates the payload from the last snapshot and continues from the failed stage.
 
 ### Listing runs
 
@@ -749,7 +749,7 @@ TELEGRAM_APPROVAL_BOT_TOKEN=
 TELEGRAM_APPROVAL_CHAT_ID=
 ```
 
-#### Phase 1 — Fetch RSS & send for review
+#### Phase 1 - Fetch RSS & send for review
 
 ```bash
 # Fetch RSS, filter entries from the last 7 days, send to Telegram
@@ -769,25 +769,25 @@ Each entry appears in your Telegram chat with:
 
 Entries are stored as `StagedContent` (pending). The pipeline does **not** run yet.
 
-#### Phase 2 — Process decisions
+#### Phase 2 - Process decisions
 
 **Option A: Polling** (no webhook needed, works locally)
 ```bash
 # Continuous long-poll (Ctrl+C to stop)
 php artisan scribe:telegram-poll
 
-# Single pass — process pending decisions and exit
+# Single pass - process pending decisions and exit
 php artisan scribe:telegram-poll --once
 ```
 
-**Option B: Webhook** (production — Telegram pushes decisions to your app)
+**Option B: Webhook** (production - Telegram pushes decisions to your app)
 
 The webhook is **auto-configured** when the first approval message is sent. By default it uses your `APP_URL` combined with the webhook path (`api/scribe/telegram/webhook`).
 
 Override the URL only when `APP_URL` doesn't match your public-facing address (e.g. behind a reverse proxy or using ngrok):
 
 ```env
-# Optional — only needed when APP_URL is not your public URL
+# Optional - only needed when APP_URL is not your public URL
 TELEGRAM_WEBHOOK_URL=https://yourapp.com/api/scribe/telegram/webhook
 TELEGRAM_WEBHOOK_SECRET=your-random-secret
 ```
@@ -927,7 +927,7 @@ Integration tests that call the real OpenAI API are excluded from the default te
 
 ## License
 
-Scribe AI is open-source software released under the **MIT License** — free to use, modify, and distribute in personal and commercial projects.
+Scribe AI is open-source software released under the **MIT License** - free to use, modify, and distribute in personal and commercial projects.
 
 See the [LICENSE](LICENSE) file for the full license text.
 

@@ -1,4 +1,4 @@
-# Pipeline Stages
+﻿# Pipeline Stages
 
 ---
 
@@ -26,7 +26,7 @@ interface Pipe
 
 - Call `$next($payload)` to continue the pipeline
 - Return `$payload->with([...])` **without** calling `$next()` to halt (reject)
-- Use `$payload->with([...])` to create a new payload with updated fields — never mutate directly
+- Use `$payload->with([...])` to create a new payload with updated fields - never mutate directly
 
 <a name="built-in-stages"></a>
 ## Built-in Stages
@@ -101,7 +101,7 @@ Publishes the article to all active channels via `PublisherManager`.
 
 **Sets:** `publishResults`
 
-**Event:** `ArticlePublished` (per channel — result, channel name)
+**Event:** `ArticlePublished` (per channel - result, channel name)
 
 <a name="writing-a-custom-stage"></a>
 ## Writing a Custom Stage

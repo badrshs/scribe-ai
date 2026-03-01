@@ -1,4 +1,4 @@
-# Publisher Manager
+﻿# Publisher Manager
 
 ---
 
@@ -37,10 +37,10 @@ PUBLISHER_DEFAULT_CHANNEL=log
 When `publishToChannels()` is called:
 
 1. **Iterate** each active channel
-2. **Check support** — `driver->supports($article)` (most drivers require `isPublished()`)
-3. **Check duplicates** — `article->wasPublishedTo($channel)` skips re-publishing
-4. **Publish** — calls `driver->publish($article)`
-5. **Log result** — success or failure is persisted to `publish_logs`
+2. **Check support** - `driver->supports($article)` (most drivers require `isPublished()`)
+3. **Check duplicates** - `article->wasPublishedTo($channel)` skips re-publishing
+4. **Publish** - calls `driver->publish($article)`
+5. **Log result** - success or failure is persisted to `publish_logs`
 
 ```php
 use Badr\ScribeAi\Services\Publishing\PublisherManager;

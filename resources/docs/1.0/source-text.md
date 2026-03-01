@@ -1,4 +1,4 @@
-# Text Driver
+﻿# Text Driver
 
 ---
 
@@ -87,4 +87,4 @@ $payload = new ContentPayload(
 );
 ```
 
-> {info} If `rawContent` is already set on the payload, the `ScrapeStage` skips fetching entirely — making the text driver unnecessary in that case.
+> {info} If `rawContent` is already set on the payload, the `ScrapeStage` skips fetching entirely - making the text driver unnecessary in that case.

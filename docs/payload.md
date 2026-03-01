@@ -1,4 +1,4 @@
-# Content Payload
+﻿# Content Payload
 
 ---
 
@@ -75,13 +75,13 @@ $payload = new ContentPayload(
 `ContentPayload` has `readonly` properties. Always use `with()`:
 
 ```php
-// ✅ Correct — creates a new instance
+// ✅ Correct - creates a new instance
 $newPayload = $payload->with([
     'title' => 'Updated Title',
     'content' => $newContent,
 ]);
 
-// ❌ Wrong — will throw
+// ❌ Wrong - will throw
 $payload->title = 'Updated Title';
 ```
 

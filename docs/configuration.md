@@ -1,4 +1,4 @@
-# Configuration
+﻿# Configuration
 
 ---
 
@@ -155,8 +155,8 @@ See [AI Providers](/docs/1.0/ai-providers) for full details on each provider.
 ],
 ```
 
-- **halt_on_error** — When `true`, the pipeline halts and rejects the payload if any stage throws. When `false`, failing stages log a warning and continue.
-- **track_runs** — When `true`, each pipeline execution is persisted to `pipeline_runs` for resume capability.
+- **halt_on_error** - When `true`, the pipeline halts and rejects the payload if any stage throws. When `false`, failing stages log a warning and continue.
+- **track_runs** - When `true`, each pipeline execution is persisted to `pipeline_runs` for resume capability.
 
 You can add, remove, or reorder stages in this array.
 

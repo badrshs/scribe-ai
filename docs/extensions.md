@@ -1,4 +1,4 @@
-# Extension System
+﻿# Extension System
 
 ---
 
@@ -11,15 +11,15 @@
 <a name="overview"></a>
 ## Overview
 
-Extensions are optional, self-contained modules that add complete workflows on top of the core pipeline. They follow the Extension contract and are managed by the `ExtensionManager`. Extensions are loaded lazily — `register()` and `boot()` are called only when `isEnabled()` returns true.
+Extensions are optional, self-contained modules that add complete workflows on top of the core pipeline. They follow the Extension contract and are managed by the `ExtensionManager`. Extensions are loaded lazily - `register()` and `boot()` are called only when `isEnabled()` returns true.
 
 <a name="how-it-works"></a>
 ## How Extensions Work
 
 The extension lifecycle follows Laravel's service provider pattern:
 
-1. **Registration** — `ExtensionManager::register()` is called for each extension. If enabled, the extension's `register()` method binds services into the container.
-2. **Booting** — `ExtensionManager::bootAll()` is called during the service provider boot phase. Enabled extensions register commands, routes, and listeners.
+1. **Registration** - `ExtensionManager::register()` is called for each extension. If enabled, the extension's `register()` method binds services into the container.
+2. **Booting** - `ExtensionManager::bootAll()` is called during the service provider boot phase. Enabled extensions register commands, routes, and listeners.
 
 ```
 ServiceProvider::register()

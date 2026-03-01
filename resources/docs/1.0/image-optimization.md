@@ -1,4 +1,4 @@
-# Image Optimization
+﻿# Image Optimization
 
 ---
 
@@ -17,11 +17,11 @@ The `ImageOptimizer` service resizes large images and converts them to WebP form
 <a name="how-it-works"></a>
 ## How It Works
 
-1. **Resize** — Images wider than `max_width` (default 1600 px) are proportionally scaled down.
-2. **WebP conversion** — Files larger than `min_size_for_conversion` (default 20 KB) are re-encoded as WebP at the configured quality.
-3. **Storage** — The optimized image is stored on the configured disk under the `images/` directory with a unique filename.
+1. **Resize** - Images wider than `max_width` (default 1600 px) are proportionally scaled down.
+2. **WebP conversion** - Files larger than `min_size_for_conversion` (default 20 KB) are re-encoded as WebP at the configured quality.
+3. **Storage** - The optimized image is stored on the configured disk under the `images/` directory with a unique filename.
 
-The service uses PHP's built-in GD extension — no external binaries required.
+The service uses PHP's built-in GD extension - no external binaries required.
 
 > {info} If the GD extension is not loaded, the service will skip optimization and store the original file unchanged, logging a warning.
 
@@ -82,8 +82,8 @@ ScrapeStage → AiRewriteStage → GenerateImageStage → OptimizeImageStage →
 
 It looks for `imagePath` on the payload:
 
-- **Present** — optimizes the image and replaces `imagePath` with the new path.
-- **Missing** — skips silently and passes the payload to the next stage.
+- **Present** - optimizes the image and replaces `imagePath` with the new path.
+- **Missing** - skips silently and passes the payload to the next stage.
 
 To disable optimization while keeping image generation, remove `OptimizeImageStage` from your pipeline stages:
 

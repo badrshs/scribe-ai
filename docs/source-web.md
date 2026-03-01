@@ -1,4 +1,4 @@
-# Web Driver
+﻿# Web Driver
 
 ---
 
@@ -11,7 +11,7 @@
 <a name="overview"></a>
 ## Overview
 
-The Web driver fetches HTML from any URL and strips it down to clean, readable content. It removes scripts, styles, navigation, footers, forms, and iframes — leaving only the meaningful text and structural tags.
+The Web driver fetches HTML from any URL and strips it down to clean, readable content. It removes scripts, styles, navigation, footers, forms, and iframes - leaving only the meaningful text and structural tags.
 
 <a name="configuration"></a>
 ## Configuration
@@ -37,10 +37,10 @@ Config in `config/scribe-ai.php`:
 <a name="how-it-works"></a>
 ## How It Works
 
-1. **HTTP request** — sends a GET request with configurable User-Agent, Accept, and Accept-Language headers
-2. **HTML cleaning** — strips non-content elements via regex patterns
-3. **Tag whitelist** — preserves `<p>`, `<br>`, headings, lists, `<blockquote>`, `<a>`, and `<img>`
-4. **Whitespace normalisation** — collapses multiple spaces into one
+1. **HTTP request** - sends a GET request with configurable User-Agent, Accept, and Accept-Language headers
+2. **HTML cleaning** - strips non-content elements via regex patterns
+3. **Tag whitelist** - preserves `<p>`, `<br>`, headings, lists, `<blockquote>`, `<a>`, and `<img>`
+4. **Whitespace normalisation** - collapses multiple spaces into one
 
 **Response:**
 

@@ -1,4 +1,4 @@
-# Content Sources — Input Drivers
+﻿# Content Sources - Input Drivers
 
 ---
 
@@ -12,7 +12,7 @@
 <a name="overview"></a>
 ## Overview
 
-Content sources are the **input side** of the pipeline. Each driver knows how to fetch raw content from a particular medium — a web page, an RSS feed, or raw text. The `ContentSourceManager` resolves the right driver automatically or lets you force one explicitly.
+Content sources are the **input side** of the pipeline. Each driver knows how to fetch raw content from a particular medium - a web page, an RSS feed, or raw text. The `ContentSourceManager` resolves the right driver automatically or lets you force one explicitly.
 
 <a name="built-in-drivers"></a>
 ## Built-in Drivers

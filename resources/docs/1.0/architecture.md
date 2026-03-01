@@ -1,4 +1,4 @@
-# Architecture
+﻿# Architecture
 
 ---
 
@@ -105,7 +105,7 @@ PipelineCompleted event
 | Pattern | Where |
 |---------|-------|
 | **Pipeline** | `ContentPipeline` sends a payload through an ordered list of stages (Laravel's `Illuminate\Pipeline\Pipeline` under the hood). |
-| **Strategy + Manager** | `PublisherManager`, `ContentSourceManager`, `AiProviderManager` all use the Manager pattern — resolve named drivers with `driver()` / `provider()` and allow `extend()`. |
-| **Immutable DTO** | `ContentPayload` has `readonly` properties. `with()` returns a new instance — stages never mutate the original. |
+| **Strategy + Manager** | `PublisherManager`, `ContentSourceManager`, `AiProviderManager` all use the Manager pattern - resolve named drivers with `driver()` / `provider()` and allow `extend()`. |
+| **Immutable DTO** | `ContentPayload` has `readonly` properties. `with()` returns a new instance - stages never mutate the original. |
 | **Event-Driven** | Every stage dispatches a Laravel event. Pipeline-level events for start/complete/fail. |
 | **Extension** | `ExtensionManager` loads optional modules that implement `Contracts\Extension`. Disabled extensions have zero overhead. |

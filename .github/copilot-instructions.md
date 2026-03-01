@@ -1,4 +1,4 @@
-# Scribe AI — Copilot Instructions
+﻿# Scribe AI - Copilot Instructions
 
 ## Package identity
 - **Composer name**: `badrshs/scribe-ai` | **PHP namespace**: `Badr\ScribeAi`
@@ -24,7 +24,7 @@ Before completing ANY task, you MUST:
 ScrapeStage → AiRewriteStage → GenerateImageStage → OptimizeImageStage → CreateArticleStage → PublishStage
 ```
 
-**Writing a stage** — implement `Contracts\Pipe`:
+**Writing a stage** - implement `Contracts\Pipe`:
 ```php
 public function handle(ContentPayload $payload, Closure $next): mixed
 {
@@ -35,7 +35,7 @@ public function handle(ContentPayload $payload, Closure $next): mixed
 }
 ```
 
-**Mutating the payload** — `ContentPayload` has `readonly` properties. Always use `$payload->with([...])` to produce a new instance; never try to assign properties directly.
+**Mutating the payload** - `ContentPayload` has `readonly` properties. Always use `$payload->with([...])` to produce a new instance; never try to assign properties directly.
 
 **One-off custom stage order**:
 ```php
@@ -53,7 +53,7 @@ app(PublisherManager::class)->extend('medium', fn(array $config) => new MediumDr
 
 The driver must implement `Contracts\Publisher` (three methods: `publish`, `supports`, `channel`).
 
-Active channels are resolved from `PUBLISHER_CHANNELS` (comma-separated env var). Use `log` driver during development — it never makes external calls.
+Active channels are resolved from `PUBLISHER_CHANNELS` (comma-separated env var). Use `log` driver during development - it never makes external calls.
 
 ### 3. Data flow
 `ContentPayload` carries state between stages (URL → scraped content → AI-rewritten article → image path → saved `Article` model → publish results). `PublishResult` is the per-channel outcome; results are auto-persisted to `publish_logs` via `PublisherManager::logResult()`.
@@ -86,7 +86,7 @@ php artisan migrate
 
 ## Conventions
 - **Stage skipping**: A stage should silently skip (call `$next($payload)` unchanged) when its required input is already present (e.g., `ScrapeStage` skips if `rawContent` is set) or missing (logs a warning, then continues).
-- **Logging**: Every stage logs its action via `Log::info()`/`Log::warning()` with `source_url` and relevant IDs — keep this consistent in new stages.
+- **Logging**: Every stage logs its action via `Log::info()`/`Log::warning()` with `source_url` and relevant IDs - keep this consistent in new stages.
 - **Config keys**: All package config lives under `scribe-ai.*`. Driver-specific config is at `scribe-ai.drivers.<name>`.
 - **Facades**: `Publisher` → `PublisherManager`, `ContentPipeline` → `ContentPipeline` service. Prefer resolving from the container (`app(PublisherManager::class)`) inside service providers and jobs.
 - **Jobs**: `ProcessContentPipelineJob` queues a full pipeline run; `PublishArticleJob` queues a single-article publish. Both are dispatchable directly.
@@ -128,7 +128,7 @@ The project uses [LaRecipe](https://larecipe.saleem.dev) for documentation. All 
 | Advanced | `categories`, `image-optimization`, `queues`, `commands`, `testing` |
 
 **Rules:**
-- If you add a new stage, driver, provider, event, or extension — create a new doc page and add it to `index.md`.
+- If you add a new stage, driver, provider, event, or extension - create a new doc page and add it to `index.md`.
 - If you change config keys, update `configuration.md` and any affected pages.
 - If you add or modify an Artisan command, update `commands.md`.
 - Keep code examples in docs in sync with actual source code.

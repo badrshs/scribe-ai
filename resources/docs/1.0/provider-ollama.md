@@ -1,4 +1,4 @@
-# Ollama Provider
+﻿# Ollama Provider
 
 ---
 
@@ -13,7 +13,7 @@
 <a name="overview"></a>
 ## Overview
 
-The Ollama provider connects to a local or self-hosted Ollama instance for fully offline AI processing. No API keys, no external calls — all data stays on your infrastructure.
+The Ollama provider connects to a local or self-hosted Ollama instance for fully offline AI processing. No API keys, no external calls - all data stays on your infrastructure.
 
 <a name="setup"></a>
 ## Setup
@@ -57,12 +57,12 @@ Provider-specific config in `config/scribe-ai.php`:
 
 Any model available in your Ollama instance:
 
-- `llama3.1` / `llama3.1:70b` — Meta's Llama 3.1
-- `mistral` / `mistral-nemo` — Mistral AI models
-- `gemma2` — Google's Gemma 2
-- `qwen2.5` — Alibaba's Qwen 2.5
-- `phi3` — Microsoft's Phi-3
-- `deepseek-coder` — Code-focused model
+- `llama3.1` / `llama3.1:70b` - Meta's Llama 3.1
+- `mistral` / `mistral-nemo` - Mistral AI models
+- `gemma2` - Google's Gemma 2
+- `qwen2.5` - Alibaba's Qwen 2.5
+- `phi3` - Microsoft's Phi-3
+- `deepseek-coder` - Code-focused model
 
 Run `ollama list` to see your installed models.
 
@@ -85,15 +85,15 @@ When `jsonMode: true` is requested, `format: 'json'` is added to the payload. Ol
 <a name="performance-tips"></a>
 ## Performance Tips
 
-- **GPU acceleration** — Ollama auto-detects NVIDIA/AMD GPUs. Ensure drivers are installed.
-- **Larger models = slower** — For the pipeline, `llama3.1:8b` or `mistral` are good balances of quality and speed.
-- **Remote Ollama** — Point to another machine:
+- **GPU acceleration** - Ollama auto-detects NVIDIA/AMD GPUs. Ensure drivers are installed.
+- **Larger models = slower** - For the pipeline, `llama3.1:8b` or `mistral` are good balances of quality and speed.
+- **Remote Ollama** - Point to another machine:
 
 ```dotenv
 OLLAMA_HOST=http://192.168.1.100:11434
 ```
 
-- **Image provider** — Ollama doesn't support image generation. Set a separate image provider:
+- **Image provider** - Ollama doesn't support image generation. Set a separate image provider:
 
 ```dotenv
 AI_PROVIDER=ollama

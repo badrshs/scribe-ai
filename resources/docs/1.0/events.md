@@ -1,4 +1,4 @@
-# Event System
+﻿# Event System
 
 ---
 
@@ -11,7 +11,7 @@
 <a name="overview"></a>
 ## Overview
 
-Scribe AI dispatches Laravel events at every significant point in the pipeline. These events allow you to hook into the workflow — log analytics, send notifications, trigger integrations, or modify behaviour without touching the core pipeline code.
+Scribe AI dispatches Laravel events at every significant point in the pipeline. These events allow you to hook into the workflow - log analytics, send notifications, trigger integrations, or modify behaviour without touching the core pipeline code.
 
 All events use the `Dispatchable` and `SerializesModels` traits, making them compatible with queued listeners.
 
@@ -97,7 +97,7 @@ $event->payload->sourceUrl;
 $event->payload->article;
 ```
 
-Additional properties vary by event — see [Pipeline Events](/docs/1.0/events-pipeline) and [Stage Events](/docs/1.0/events-stages) for details.
+Additional properties vary by event - see [Pipeline Events](/docs/1.0/events-pipeline) and [Stage Events](/docs/1.0/events-stages) for details.
 
 <a name="practical-examples"></a>
 ## Practical Examples

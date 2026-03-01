@@ -1,4 +1,4 @@
-# RSS Driver
+﻿# RSS Driver
 
 ---
 
@@ -50,10 +50,10 @@ Content is extracted from `<content:encoded>`, `<description>` (RSS) or `<conten
 <a name="how-it-works"></a>
 ## How It Works
 
-1. **HTTP fetch** — downloads the feed XML
-2. **XML parsing** — parses with `SimpleXMLElement`
-3. **Entry extraction** — parses up to `max_items` entries
-4. **Return latest** — the most recent entry is returned as primary content
+1. **HTTP fetch** - downloads the feed XML
+2. **XML parsing** - parses with `SimpleXMLElement`
+3. **Entry extraction** - parses up to `max_items` entries
+4. **Return latest** - the most recent entry is returned as primary content
 
 **Response:**
 

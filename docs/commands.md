@@ -1,4 +1,4 @@
-# Artisan Commands
+﻿# Artisan Commands
 
 ---
 
@@ -31,10 +31,10 @@ php artisan scribe:install
 
 The wizard walks you through:
 
-1. **AI Provider** — choose the default provider (OpenAI, Claude, Gemini, Ollama, PiAPI) and enter the API key.
-2. **Image Provider** — select which provider generates featured images; only providers that support image generation are offered.
-3. **Publish Channels** — pick one or more channels (Log, Telegram, Facebook, Blogger, WordPress) and configure their credentials.
-4. **Pipeline Settings** — toggle optional stages and set queue names.
+1. **AI Provider** - choose the default provider (OpenAI, Claude, Gemini, Ollama, PiAPI) and enter the API key.
+2. **Image Provider** - select which provider generates featured images; only providers that support image generation are offered.
+3. **Publish Channels** - pick one or more channels (Log, Telegram, Facebook, Blogger, WordPress) and configure their credentials.
+4. **Pipeline Settings** - toggle optional stages and set queue names.
 
 At the end it writes values to your `.env` file and publishes config/migrations automatically.
 
@@ -167,4 +167,4 @@ Manually fetch pending staged content and send it to Telegram for approval.
 php artisan scribe:telegram-fetch-and-send
 ```
 
-This is an alternative to the automatic flow — useful for testing or when the webhook is down. It fetches all staged content with a `pending` status and sends each item to the configured Telegram chat with inline approve/reject buttons.
+This is an alternative to the automatic flow - useful for testing or when the webhook is down. It fetches all staged content with a `pending` status and sends each item to the configured Telegram chat with inline approve/reject buttons.

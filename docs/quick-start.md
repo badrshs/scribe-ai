@@ -1,4 +1,4 @@
-# Quick Start
+﻿# Quick Start
 
 ---
 
@@ -31,24 +31,24 @@ php artisan scribe:process-url https://example.com/article --sync
 You'll see real-time progress output:
 
 ```
-  Scribe AI — Processing URL
+  Scribe AI - Processing URL
   URL: https://example.com/article
 
   [1/6] Scrape  …
-        ✓ completed — 4523 chars via web driver
+        ✓ completed - 4523 chars via web driver
   [2/6] AI Rewrite  …
-        ✓ completed — "How Technology Is Reshaping Our Daily Lives"
+        ✓ completed - "How Technology Is Reshaping Our Daily Lives"
   [3/6] Generate Image  …
         ✓ completed
   [4/6] Optimise Image  …
         ✓ completed
   [5/6] Create Article  …
-        ✓ completed — ID #1
+        ✓ completed - ID #1
   [6/6] Publish  …
-        ✓ completed — 1/1 channels succeeded
+        ✓ completed - 1/1 channels succeeded
 
   ✅ Pipeline complete (3.42s)
-  Article #1 — "How Technology Is Reshaping Our Daily Lives"
+  Article #1 - "How Technology Is Reshaping Our Daily Lives"
 ```
 
 <a name="understanding-output"></a>

@@ -1,4 +1,4 @@
-# Queues & Jobs
+﻿# Queues & Jobs
 
 ---
 
@@ -169,4 +169,4 @@ php artisan queue:failed
 php artisan queue:retry {id}
 ```
 
-Pipeline runs also track failure state — use `scribe:resume {runId}` to retry a failed pipeline from the last completed stage.
+Pipeline runs also track failure state - use `scribe:resume {runId}` to retry a failed pipeline from the last completed stage.

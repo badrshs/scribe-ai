@@ -1,4 +1,4 @@
-# Testing
+﻿# Testing
 
 ---
 
@@ -34,7 +34,7 @@ use Badr\ScribeAi\Tests\TestCase;
 
 class MyTest extends TestCase
 {
-    // TestCase is pre-configured — just write test methods
+    // TestCase is pre-configured - just write test methods
 }
 ```
 
@@ -229,7 +229,7 @@ $result = $pipeline->process($payload);
 
 ### Use the Log Driver
 
-The `log` driver never makes external HTTP calls — ideal for tests:
+The `log` driver never makes external HTTP calls - ideal for tests:
 
 ```php
 config(['scribe-ai.channels' => ['log']]);

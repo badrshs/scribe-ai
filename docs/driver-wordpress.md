@@ -1,4 +1,4 @@
-# WordPress Driver
+﻿# WordPress Driver
 
 ---
 
@@ -67,10 +67,10 @@ The driver sends a `POST` to `{url}/wp-json/wp/v2/posts` with:
 
 **Options:**
 
-- `title`, `content` — override article fields
-- `status` — `publish`, `draft`, or `pending`
-- `category_ids` — override auto-resolved categories
-- `tag_ids` — override auto-resolved tags
+- `title`, `content` - override article fields
+- `status` - `publish`, `draft`, or `pending`
+- `category_ids` - override auto-resolved categories
+- `tag_ids` - override auto-resolved tags
 
 <a name="categories-tags"></a>
 ## Categories & Tags
@@ -81,7 +81,7 @@ The driver automatically maps Scribe AI categories and tags to WordPress taxonom
 2. **Create** the term if it doesn't exist
 3. **Pass IDs** to the post creation endpoint
 
-This is fully automatic — no manual mapping required.
+This is fully automatic - no manual mapping required.
 
 ```php
 // The driver does this automatically:
@@ -114,7 +114,7 @@ Application Passwords are a native WordPress feature (since 5.6) that provides s
 <a name="setup-guide"></a>
 ## Setup Guide
 
-1. **Enable REST API** — most WordPress installations have it enabled by default
+1. **Enable REST API** - most WordPress installations have it enabled by default
 2. **Create an Application Password**:
    - Go to **Users → Profile → Application Passwords**
    - Enter a name (e.g., "Scribe AI")

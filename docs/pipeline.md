@@ -1,4 +1,4 @@
-# Content Pipeline
+﻿# Content Pipeline
 
 ---
 
@@ -105,9 +105,9 @@ $pipeline->onProgress(function (string $stage, string $status) {
 // Output:
 // Pipeline: started
 // Scrape: started
-// Scrape: completed — 4523 chars via web driver
+// Scrape: completed - 4523 chars via web driver
 // AI Rewrite: started
-// AI Rewrite: completed — "Article Title"
+// AI Rewrite: completed - "Article Title"
 // ...
 // Pipeline: completed
 ```
