@@ -10,6 +10,8 @@
 - [scribe:resume](#resume)
 - [scribe:telegram-set-webhook](#telegram-set-webhook)
 - [scribe:telegram-fetch-and-send](#telegram-fetch-and-send)
+- [scribe:rss-review](#rss-review)
+- [scribe:telegram-poll](#telegram-poll)
 
 <a name="overview"></a>
 ## Overview
@@ -148,15 +150,31 @@ $ php artisan scribe:resume 7
 <a name="telegram-set-webhook"></a>
 ## scribe:telegram-set-webhook
 
-Register a Telegram webhook so the bot receives approval/rejection callbacks.
+Set, remove, or inspect the Telegram webhook for approval callbacks.
 
 ```bash
+# Set the webhook
 php artisan scribe:telegram-set-webhook
+
+# Show current webhook status
+php artisan scribe:telegram-set-webhook --info
+
+# Remove the webhook (switch to polling mode)
+php artisan scribe:telegram-set-webhook --remove
 ```
 
-This sets the webhook URL to your application's callback route. The URL is built from `APP_URL` plus the route registered by the Telegram Approval extension.
+The webhook URL is resolved in this order:
+1. `TELEGRAM_WEBHOOK_URL` env variable (explicit)
+2. `APP_URL` + `TELEGRAM_WEBHOOK_PATH` (auto-resolved)
 
-> {info} The webhook is automatically registered when the Telegram Approval extension boots, so this command is mostly useful for re-registering after a URL change.
+### Options
+
+| Option | Description |
+|---|---|
+| `--info` | Display current webhook status from Telegram (URL, pending updates, last error) |
+| `--remove` | Remove the webhook and switch back to polling mode |
+
+> {info} Use `--info` to debug webhook issues. It shows the registered URL, any errors Telegram reported, and whether the URL matches your config.
 
 <a name="telegram-fetch-and-send"></a>
 ## scribe:telegram-fetch-and-send
@@ -168,3 +186,69 @@ php artisan scribe:telegram-fetch-and-send
 ```
 
 This is an alternative to the automatic flow - useful for testing or when the webhook is down. It fetches all staged content with a `pending` status and sends each item to the configured Telegram chat with inline approve/reject buttons.
+
+<a name="rss-review"></a>
+## scribe:rss-review
+
+Fetch an RSS feed, optionally filter entries with AI, and send them to Telegram for human approval.
+
+```bash
+php artisan scribe:rss-review {url} [options]
+```
+
+| Option | Description |
+|---|---|
+| `--days={n}` | Only include entries from the last N days (default: 7) |
+| `--ai-filter` | Use AI to rank and summarise each entry before sending |
+| `--limit={n}` | Maximum entries to send for review (default: 10) |
+| `--silent` | Suppress console output |
+
+**Examples:**
+
+```bash
+# Fetch latest articles from the last day
+php artisan scribe:rss-review https://blog.example.com/feed --days=1
+
+# With AI filtering (ranks relevance, generates summary)
+php artisan scribe:rss-review https://blog.example.com/feed --ai-filter --limit=5
+```
+
+### What happens after review?
+
+Once entries are sent to Telegram, the reviewer taps a button:
+
+- **Approve** - the full content pipeline runs automatically (scrape, AI rewrite, image generation, publish to all configured channels)
+- **Reject** - the entry is marked as rejected and permanently discarded. Nothing is published.
+
+Callbacks are processed either by the **webhook** (automatic, requires public URL) or by the **poll command** (manual, works anywhere). If a webhook is configured, approved entries are processed instantly with no extra steps.
+
+> {info} Duplicate entries are automatically filtered - running the command multiple times for the same feed will only send new entries.
+
+<a name="telegram-poll"></a>
+## scribe:telegram-poll
+
+Long-poll Telegram for approval/rejection button clicks and process them.
+
+```bash
+php artisan scribe:telegram-poll [options]
+```
+
+| Option | Description |
+|---|---|
+| `--once` | Process any pending callbacks and exit (no continuous loop) |
+| `--timeout={n}` | Long-poll timeout in seconds (default: 30) |
+| `--silent` | Suppress console output |
+
+**Examples:**
+
+```bash
+# Continuous polling (Ctrl+C to stop)
+php artisan scribe:telegram-poll
+
+# Single pass - check for pending decisions and exit
+php artisan scribe:telegram-poll --once
+```
+
+Use this command when you do not have a public URL for webhooks (local development, firewalled servers). It connects to Telegram's API and waits for button clicks.
+
+> {warning} Polling and webhooks are mutually exclusive. Running this command will automatically disable any active webhook. The command will warn you before proceeding if a webhook is detected.

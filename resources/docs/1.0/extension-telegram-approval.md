@@ -80,8 +80,10 @@ Source: https://blog.com/article-123
 
 When a button is tapped:
 
-- **Approve** - marks `StagedContent` as approved, dispatches `ProcessContentPipelineJob`, updates Telegram message
-- **Reject** - updates the Telegram message with rejection status
+- **Approve** - the full content pipeline runs automatically: the article is scraped, rewritten by AI, an image is generated, and the final article is published to all your configured channels (Telegram, Facebook, Blogger, WordPress, etc.)
+- **Reject** - the entry is marked as rejected and discarded. **Nothing is published.** The entry will not appear again in future fetches.
+
+> {primary} Only approved content gets published. Rejecting an entry permanently removes it from the queue.
 
 <a name="commands"></a>
 ## Commands
