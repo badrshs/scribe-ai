@@ -179,7 +179,7 @@ class InstallCommand extends Command
 
         // Normalise — choice() may return a string or array depending on driver
         $channels = is_array($channels) ? $channels : [$channels];
-        $channels = array_values(array_filter($channels, fn ($ch) => in_array($ch, $available, true)));
+        $channels = array_values(array_filter($channels, fn($ch) => in_array($ch, $available, true)));
 
         if (empty($channels)) {
             $channels = ['log'];
