@@ -1,10 +1,10 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Publishing\Drivers;
+namespace Badr\ScribeAi\Services\Publishing\Drivers;
 
-use Bader\ContentPublisher\Contracts\Publisher;
-use Bader\ContentPublisher\Data\PublishResult;
-use Bader\ContentPublisher\Models\Article;
+use Badr\ScribeAi\Contracts\Publisher;
+use Badr\ScribeAi\Data\PublishResult;
+use Badr\ScribeAi\Models\Article;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;

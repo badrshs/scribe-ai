@@ -81,8 +81,8 @@ This will:
 ### Programmatically
 
 ```php
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
-use Bader\ContentPublisher\Models\PipelineRun;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Models\PipelineRun;
 
 $pipeline = app(ContentPipeline::class);
 
@@ -137,8 +137,8 @@ $result = $pipeline->withoutTracking()->process($payload);
 ## Querying Runs
 
 ```php
-use Bader\ContentPublisher\Models\PipelineRun;
-use Bader\ContentPublisher\Enums\PipelineRunStatus;
+use Badr\ScribeAi\Models\PipelineRun;
+use Badr\ScribeAi\Enums\PipelineRunStatus;
 
 // All failed runs
 $failed = PipelineRun::where('status', PipelineRunStatus::Failed)->get();

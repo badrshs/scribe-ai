@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Console\Commands;
+namespace Badr\ScribeAi\Console\Commands;
 
-use Bader\ContentPublisher\Jobs\ProcessContentPipelineJob;
-use Bader\ContentPublisher\Models\StagedContent;
+use Badr\ScribeAi\Jobs\ProcessContentPipelineJob;
+use Badr\ScribeAi\Models\StagedContent;
 use Illuminate\Console\Command;
 
 /**

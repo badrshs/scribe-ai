@@ -52,7 +52,7 @@ All settings live under `scribe-ai.images`:
 ## Optimize Uploaded Files
 
 ```php
-use Bader\ContentPublisher\Services\ImageOptimizer;
+use Badr\ScribeAi\Services\ImageOptimizer;
 use Illuminate\Http\UploadedFile;
 
 $optimizer = app(ImageOptimizer::class);
@@ -91,12 +91,12 @@ To disable optimization while keeping image generation, remove `OptimizeImageSta
 // config/scribe-ai.php
 'pipeline' => [
     'stages' => [
-        \Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
-        \Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
-        \Bader\ContentPublisher\Services\Pipeline\Stages\GenerateImageStage::class,
+        \Badr\ScribeAi\Services\Pipeline\Stages\ScrapeStage::class,
+        \Badr\ScribeAi\Services\Pipeline\Stages\AiRewriteStage::class,
+        \Badr\ScribeAi\Services\Pipeline\Stages\GenerateImageStage::class,
         // OptimizeImageStage removed
-        \Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
-        \Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
+        \Badr\ScribeAi\Services\Pipeline\Stages\CreateArticleStage::class,
+        \Badr\ScribeAi\Services\Pipeline\Stages\PublishStage::class,
     ],
 ],
 ```

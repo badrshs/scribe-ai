@@ -17,10 +17,10 @@ Add support for any publishing platform by implementing the `Publisher` contract
 ## The Publisher Contract
 
 ```php
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
-use Bader\ContentPublisher\Data\PublishResult;
-use Bader\ContentPublisher\Models\Article;
+use Badr\ScribeAi\Data\PublishResult;
+use Badr\ScribeAi\Models\Article;
 
 interface Publisher
 {
@@ -51,9 +51,9 @@ interface Publisher
 
 namespace App\Publishers;
 
-use Bader\ContentPublisher\Contracts\Publisher;
-use Bader\ContentPublisher\Data\PublishResult;
-use Bader\ContentPublisher\Models\Article;
+use Badr\ScribeAi\Contracts\Publisher;
+use Badr\ScribeAi\Data\PublishResult;
+use Badr\ScribeAi\Models\Article;
 use Illuminate\Support\Facades\Http;
 
 class SlackDriver implements Publisher
@@ -102,7 +102,7 @@ class SlackDriver implements Publisher
 In your application's service provider:
 
 ```php
-use Bader\ContentPublisher\Services\Publishing\PublisherManager;
+use Badr\ScribeAi\Services\Publishing\PublisherManager;
 
 public function register(): void
 {

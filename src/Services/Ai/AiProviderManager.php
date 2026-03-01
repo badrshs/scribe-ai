@@ -1,13 +1,13 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Ai;
+namespace Badr\ScribeAi\Services\Ai;
 
-use Bader\ContentPublisher\Contracts\AiProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\ClaudeProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\GeminiProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\OllamaProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\OpenAiProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\PiApiProvider;
+use Badr\ScribeAi\Contracts\AiProvider;
+use Badr\ScribeAi\Services\Ai\Providers\ClaudeProvider;
+use Badr\ScribeAi\Services\Ai\Providers\GeminiProvider;
+use Badr\ScribeAi\Services\Ai\Providers\OllamaProvider;
+use Badr\ScribeAi\Services\Ai\Providers\OpenAiProvider;
+use Badr\ScribeAi\Services\Ai\Providers\PiApiProvider;
 use InvalidArgumentException;
 
 /**

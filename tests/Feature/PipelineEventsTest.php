@@ -1,24 +1,24 @@
 <?php
 
-namespace Bader\ContentPublisher\Tests\Feature;
+namespace Badr\ScribeAi\Tests\Feature;
 
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Events\ArticleCreated;
-use Bader\ContentPublisher\Events\ArticlePublished;
-use Bader\ContentPublisher\Events\ContentRewritten;
-use Bader\ContentPublisher\Events\ContentScraped;
-use Bader\ContentPublisher\Events\ImageGenerated;
-use Bader\ContentPublisher\Events\ImageOptimized;
-use Bader\ContentPublisher\Events\PipelineCompleted;
-use Bader\ContentPublisher\Events\PipelineFailed;
-use Bader\ContentPublisher\Events\PipelineStarted;
-use Bader\ContentPublisher\Models\Category;
-use Bader\ContentPublisher\Services\Ai\AiService;
-use Bader\ContentPublisher\Services\Ai\ImageGenerator;
-use Bader\ContentPublisher\Services\ImageOptimizer;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
-use Bader\ContentPublisher\Services\WebScraper;
-use Bader\ContentPublisher\Tests\TestCase;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Events\ArticleCreated;
+use Badr\ScribeAi\Events\ArticlePublished;
+use Badr\ScribeAi\Events\ContentRewritten;
+use Badr\ScribeAi\Events\ContentScraped;
+use Badr\ScribeAi\Events\ImageGenerated;
+use Badr\ScribeAi\Events\ImageOptimized;
+use Badr\ScribeAi\Events\PipelineCompleted;
+use Badr\ScribeAi\Events\PipelineFailed;
+use Badr\ScribeAi\Events\PipelineStarted;
+use Badr\ScribeAi\Models\Category;
+use Badr\ScribeAi\Services\Ai\AiService;
+use Badr\ScribeAi\Services\Ai\ImageGenerator;
+use Badr\ScribeAi\Services\ImageOptimizer;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Services\WebScraper;
+use Badr\ScribeAi\Tests\TestCase;
 use Illuminate\Support\Facades\Event;
 use Mockery;
 

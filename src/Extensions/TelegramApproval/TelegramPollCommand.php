@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Extensions\TelegramApproval;
+namespace Badr\ScribeAi\Extensions\TelegramApproval;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;

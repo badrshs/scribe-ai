@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Models;
+namespace Badr\ScribeAi\Models;
 
-use Bader\ContentPublisher\Enums\PipelineRunStatus;
+use Badr\ScribeAi\Enums\PipelineRunStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

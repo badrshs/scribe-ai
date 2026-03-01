@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Console\Commands;
+namespace Badr\ScribeAi\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;

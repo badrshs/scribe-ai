@@ -57,7 +57,7 @@ return [
     ],
 
     'seo' => [
-        'author'      => 'Bader',
+        'author'      => 'Badr',
         'description' => 'Scribe AI — Turn any URL into a published article with AI. Full documentation.',
         'keywords'    => 'laravel, ai, content, publishing, pipeline, scribe',
         'og'          => [

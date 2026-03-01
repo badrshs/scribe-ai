@@ -1,15 +1,15 @@
 <?php
 
-namespace Bader\ContentPublisher\Tests\Feature;
+namespace Badr\ScribeAi\Tests\Feature;
 
-use Bader\ContentPublisher\Contracts\AiProvider;
-use Bader\ContentPublisher\Services\Ai\AiProviderManager;
-use Bader\ContentPublisher\Services\Ai\Providers\ClaudeProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\GeminiProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\OllamaProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\OpenAiProvider;
-use Bader\ContentPublisher\Services\Ai\Providers\PiApiProvider;
-use Bader\ContentPublisher\Tests\TestCase;
+use Badr\ScribeAi\Contracts\AiProvider;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
+use Badr\ScribeAi\Services\Ai\Providers\ClaudeProvider;
+use Badr\ScribeAi\Services\Ai\Providers\GeminiProvider;
+use Badr\ScribeAi\Services\Ai\Providers\OllamaProvider;
+use Badr\ScribeAi\Services\Ai\Providers\OpenAiProvider;
+use Badr\ScribeAi\Services\Ai\Providers\PiApiProvider;
+use Badr\ScribeAi\Tests\TestCase;
 use InvalidArgumentException;
 
 class AiProviderManagerTest extends TestCase

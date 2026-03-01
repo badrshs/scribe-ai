@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Sources\Drivers;
+namespace Badr\ScribeAi\Services\Sources\Drivers;
 
-use Bader\ContentPublisher\Contracts\ContentSource;
+use Badr\ScribeAi\Contracts\ContentSource;
 use Illuminate\Support\Facades\Log;
 
 /**

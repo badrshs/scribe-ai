@@ -1,18 +1,18 @@
 <?php
 
-namespace Bader\ContentPublisher\Tests\Feature;
+namespace Badr\ScribeAi\Tests\Feature;
 
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Enums\PipelineRunStatus;
-use Bader\ContentPublisher\Models\Article;
-use Bader\ContentPublisher\Models\Category;
-use Bader\ContentPublisher\Models\PipelineRun;
-use Bader\ContentPublisher\Services\Ai\AiService;
-use Bader\ContentPublisher\Services\Ai\ImageGenerator;
-use Bader\ContentPublisher\Services\ImageOptimizer;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
-use Bader\ContentPublisher\Services\WebScraper;
-use Bader\ContentPublisher\Tests\TestCase;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Enums\PipelineRunStatus;
+use Badr\ScribeAi\Models\Article;
+use Badr\ScribeAi\Models\Category;
+use Badr\ScribeAi\Models\PipelineRun;
+use Badr\ScribeAi\Services\Ai\AiService;
+use Badr\ScribeAi\Services\Ai\ImageGenerator;
+use Badr\ScribeAi\Services\ImageOptimizer;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Services\WebScraper;
+use Badr\ScribeAi\Tests\TestCase;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 
@@ -414,8 +414,8 @@ class ContentPipelineEndToEndTest extends TestCase
         // Use a custom stage that throws without catching
         $pipeline = app(ContentPipeline::class);
         $pipeline->through([
-            \Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
-            \Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
+            \Badr\ScribeAi\Services\Pipeline\Stages\ScrapeStage::class,
+            \Badr\ScribeAi\Services\Pipeline\Stages\AiRewriteStage::class,
             FailingStageStub::class,
         ]);
 
@@ -440,11 +440,11 @@ class ContentPipelineEndToEndTest extends TestCase
         // First run: use a failing stage
         $pipeline = app(ContentPipeline::class);
         $pipeline->through([
-            \Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
-            \Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
+            \Badr\ScribeAi\Services\Pipeline\Stages\ScrapeStage::class,
+            \Badr\ScribeAi\Services\Pipeline\Stages\AiRewriteStage::class,
             FailingStageStub::class,
-            \Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
-            \Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
+            \Badr\ScribeAi\Services\Pipeline\Stages\CreateArticleStage::class,
+            \Badr\ScribeAi\Services\Pipeline\Stages\PublishStage::class,
         ]);
 
         config(['scribe-ai.pipeline.halt_on_error' => true]);
@@ -457,12 +457,12 @@ class ContentPipelineEndToEndTest extends TestCase
         // "Fix" the failing stage by replacing the stages list on the run with working stages
         $run->update([
             'stages' => [
-                \Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
-                \Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
+                \Badr\ScribeAi\Services\Pipeline\Stages\ScrapeStage::class,
+                \Badr\ScribeAi\Services\Pipeline\Stages\AiRewriteStage::class,
                 // The failing stage is replaced with image generation (mocked to work)
-                \Bader\ContentPublisher\Services\Pipeline\Stages\GenerateImageStage::class,
-                \Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
-                \Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
+                \Badr\ScribeAi\Services\Pipeline\Stages\GenerateImageStage::class,
+                \Badr\ScribeAi\Services\Pipeline\Stages\CreateArticleStage::class,
+                \Badr\ScribeAi\Services\Pipeline\Stages\PublishStage::class,
             ],
         ]);
 
@@ -524,7 +524,7 @@ class ContentPipelineEndToEndTest extends TestCase
 /**
  * A stub stage that always throws — used to test uncaught failure tracking.
  */
-class FailingStageStub implements \Bader\ContentPublisher\Contracts\Pipe
+class FailingStageStub implements \Badr\ScribeAi\Contracts\Pipe
 {
     public function handle(ContentPayload $payload, \Closure $next): mixed
     {

@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
-use Bader\ContentPublisher\Data\ContentPayload;
+use Badr\ScribeAi\Data\ContentPayload;
 use Closure;
 
 interface Pipe

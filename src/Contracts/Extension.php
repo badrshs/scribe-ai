@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
 use Illuminate\Contracts\Foundation\Application;
 
@@ -11,7 +11,7 @@ use Illuminate\Contracts\Foundation\Application;
  * workflows on top of the core pipeline. Implement this interface
  * and register your extension in a service provider:
  *
- *     app(\Bader\ContentPublisher\Services\ExtensionManager::class)
+ *     app(\Badr\ScribeAi\Services\ExtensionManager::class)
  *         ->register(new MyExtension());
  *
  * Extensions are booted lazily — the boot() method is called only

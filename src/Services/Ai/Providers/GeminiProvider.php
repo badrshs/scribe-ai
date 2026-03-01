@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Ai\Providers;
+namespace Badr\ScribeAi\Services\Ai\Providers;
 
-use Bader\ContentPublisher\Contracts\AiProvider;
+use Badr\ScribeAi\Contracts\AiProvider;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 

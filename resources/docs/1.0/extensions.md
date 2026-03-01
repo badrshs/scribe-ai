@@ -57,7 +57,7 @@ The `ExtensionManager` is a singleton that tracks all registered extensions.
 **Usage:**
 
 ```php
-use Bader\ContentPublisher\Services\ExtensionManager;
+use Badr\ScribeAi\Services\ExtensionManager;
 
 $manager = app(ExtensionManager::class);
 
@@ -83,14 +83,14 @@ Add custom extension class names to `config/scribe-ai.php`:
 ],
 ```
 
-These are automatically registered by the `ContentPublisherServiceProvider`.
+These are automatically registered by the `ScribeAiServiceProvider`.
 
 ### Programmatically
 
 In your service provider's `register()` method:
 
 ```php
-use Bader\ContentPublisher\Services\ExtensionManager;
+use Badr\ScribeAi\Services\ExtensionManager;
 
 $manager = app(ExtensionManager::class);
 $manager->register(new MyExtension(), $this->app);

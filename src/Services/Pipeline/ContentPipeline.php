@@ -1,13 +1,13 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Pipeline;
+namespace Badr\ScribeAi\Services\Pipeline;
 
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Enums\PipelineRunStatus;
-use Bader\ContentPublisher\Events\PipelineCompleted;
-use Bader\ContentPublisher\Events\PipelineFailed;
-use Bader\ContentPublisher\Events\PipelineStarted;
-use Bader\ContentPublisher\Models\PipelineRun;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Enums\PipelineRunStatus;
+use Badr\ScribeAi\Events\PipelineCompleted;
+use Badr\ScribeAi\Events\PipelineFailed;
+use Badr\ScribeAi\Events\PipelineStarted;
+use Badr\ScribeAi\Models\PipelineRun;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Log;
 

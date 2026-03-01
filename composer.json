@@ -27,22 +27,22 @@
     },
     "autoload": {
         "psr-4": {
-            "Bader\\ContentPublisher\\": "src/"
+            "Badr\\ScribeAi\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Bader\\ContentPublisher\\Tests\\": "tests/"
+            "Badr\\ScribeAi\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Bader\\ContentPublisher\\ContentPublisherServiceProvider"
+                "Badr\\ScribeAi\\ScribeAiServiceProvider"
             ],
             "aliases": {
-                "Publisher": "Bader\\ContentPublisher\\Facades\\Publisher",
-                "ContentPipeline": "Bader\\ContentPublisher\\Facades\\ContentPipeline"
+                "Publisher": "Badr\\ScribeAi\\Facades\\Publisher",
+                "ContentPipeline": "Badr\\ScribeAi\\Facades\\ContentPipeline"
             }
         }
     },

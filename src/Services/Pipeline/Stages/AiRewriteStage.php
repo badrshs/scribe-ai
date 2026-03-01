@@ -1,13 +1,13 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Pipeline\Stages;
+namespace Badr\ScribeAi\Services\Pipeline\Stages;
 
-use Bader\ContentPublisher\Contracts\Pipe;
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Events\ContentRewritten;
-use Bader\ContentPublisher\Models\Category;
-use Bader\ContentPublisher\Services\Ai\AiService;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Contracts\Pipe;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Events\ContentRewritten;
+use Badr\ScribeAi\Models\Category;
+use Badr\ScribeAi\Services\Ai\AiService;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;

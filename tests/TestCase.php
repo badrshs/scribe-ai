@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Tests;
+namespace Badr\ScribeAi\Tests;
 
-use Bader\ContentPublisher\ContentPublisherServiceProvider;
+use Badr\ScribeAi\ScribeAiServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
@@ -13,7 +13,7 @@ abstract class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app): array
     {
         return [
-            ContentPublisherServiceProvider::class,
+            ScribeAiServiceProvider::class,
         ];
     }
 

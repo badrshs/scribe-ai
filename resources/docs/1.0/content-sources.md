@@ -59,7 +59,7 @@ The `ContentSourceManager` manages driver resolution, auto-detection, and extens
 **Basic usage:**
 
 ```php
-use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
+use Badr\ScribeAi\Services\Sources\ContentSourceManager;
 
 $manager = app(ContentSourceManager::class);
 

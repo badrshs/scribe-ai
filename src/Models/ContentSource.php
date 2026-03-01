@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Models;
+namespace Badr\ScribeAi\Models;
 
-use Bader\ContentPublisher\Enums\SourceType;
+use Badr\ScribeAi\Enums\SourceType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

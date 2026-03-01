@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
-use Bader\ContentPublisher\Data\PublishResult;
-use Bader\ContentPublisher\Models\Article;
+use Badr\ScribeAi\Data\PublishResult;
+use Badr\ScribeAi\Models\Article;
 
 interface Publisher
 {

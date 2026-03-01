@@ -1,6 +1,6 @@
 <?php
 
-use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramWebhookController;
+use Badr\ScribeAi\Extensions\TelegramApproval\TelegramWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*

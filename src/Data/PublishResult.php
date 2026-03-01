@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Data;
+namespace Badr\ScribeAi\Data;
 
 /**
  * Result of a single publish operation to one channel.

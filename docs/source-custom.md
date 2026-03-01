@@ -17,7 +17,7 @@ Add support for any content source by implementing the `ContentSource` contract 
 ## The ContentSource Contract
 
 ```php
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
 interface ContentSource
 {
@@ -50,7 +50,7 @@ interface ContentSource
 
 namespace App\Sources;
 
-use Bader\ContentPublisher\Contracts\ContentSource;
+use Badr\ScribeAi\Contracts\ContentSource;
 use Illuminate\Support\Facades\Http;
 
 class YouTubeDriver implements ContentSource
@@ -104,7 +104,7 @@ class YouTubeDriver implements ContentSource
 In your application's service provider:
 
 ```php
-use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
+use Badr\ScribeAi\Services\Sources\ContentSourceManager;
 
 public function register(): void
 {

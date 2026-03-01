@@ -60,7 +60,7 @@ AI_IMAGE_PROVIDER=openai
 ## Switching Providers at Runtime
 
 ```php
-use Bader\ContentPublisher\Services\Ai\AiProviderManager;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
 
 $manager = app(AiProviderManager::class);
 
@@ -98,11 +98,11 @@ Providers are cached after first resolution for the lifetime of the request.
 Register a custom provider in your service provider's `register()` method:
 
 ```php
-use Bader\ContentPublisher\Services\Ai\AiProviderManager;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
 
 app(AiProviderManager::class)->extend('mistral', function (array $config) {
     return new MistralProvider($config);
 });
 ```
 
-Your class must implement `Bader\ContentPublisher\Contracts\AiProvider`. See [Custom Providers](/docs/1.0/provider-custom) for a full guide.
+Your class must implement `Badr\ScribeAi\Contracts\AiProvider`. See [Custom Providers](/docs/1.0/provider-custom) for a full guide.

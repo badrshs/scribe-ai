@@ -20,7 +20,7 @@ Fired when the pipeline begins executing stages (including on resume).
 | `runId` | `?int` | Pipeline run ID (null if tracking disabled) |
 
 ```php
-use Bader\ContentPublisher\Events\PipelineStarted;
+use Badr\ScribeAi\Events\PipelineStarted;
 
 Event::listen(PipelineStarted::class, function (PipelineStarted $event) {
     Log::info("Pipeline started for: {$event->payload->sourceUrl}");
@@ -40,7 +40,7 @@ Fired when all stages complete successfully and the payload is not rejected.
 | `runId` | `?int` | Pipeline run ID |
 
 ```php
-use Bader\ContentPublisher\Events\PipelineCompleted;
+use Badr\ScribeAi\Events\PipelineCompleted;
 
 Event::listen(PipelineCompleted::class, function (PipelineCompleted $event) {
     $article = $event->payload->article;
@@ -63,7 +63,7 @@ Fired when the pipeline halts due to an exception or content rejection.
 | `runId` | `?int` | Pipeline run ID |
 
 ```php
-use Bader\ContentPublisher\Events\PipelineFailed;
+use Badr\ScribeAi\Events\PipelineFailed;
 
 Event::listen(PipelineFailed::class, function (PipelineFailed $event) {
     Log::error("Pipeline failed at stage [{$event->stage}]: {$event->reason}");

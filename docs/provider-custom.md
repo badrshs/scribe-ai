@@ -18,7 +18,7 @@ You can add support for any AI service by implementing the `AiProvider` contract
 ## The AiProvider Contract
 
 ```php
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
 interface AiProvider
 {
@@ -54,7 +54,7 @@ interface AiProvider
 
 namespace App\Ai;
 
-use Bader\ContentPublisher\Contracts\AiProvider;
+use Badr\ScribeAi\Contracts\AiProvider;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -119,7 +119,7 @@ class MistralProvider implements AiProvider
 In your application's service provider:
 
 ```php
-use Bader\ContentPublisher\Services\Ai\AiProviderManager;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
 
 public function register(): void
 {

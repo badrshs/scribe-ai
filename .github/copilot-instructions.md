@@ -1,8 +1,8 @@
 # Scribe AI — Copilot Instructions
 
 ## Package identity
-- **Composer name**: `badrshs/scribe-ai` | **PHP namespace**: `Bader\ContentPublisher`
-- Laravel package (no standalone entrypoint). All classes are registered as singletons in `ContentPublisherServiceProvider`.
+- **Composer name**: `badrshs/scribe-ai` | **PHP namespace**: `Badr\ScribeAi`
+- Laravel package (no standalone entrypoint). All classes are registered as singletons in `ScribeAiServiceProvider`.
 - Targets Laravel 11/12 and PHP 8.2+.
 
 ## Testing Workflow - The "done" Command Loop Veru crocial
@@ -94,7 +94,7 @@ php artisan migrate
 ## Key files
 | Purpose | File |
 |---|---|
-| Service wiring | `src/ContentPublisherServiceProvider.php` |
+| Service wiring | `src/ScribeAiServiceProvider.php` |
 | Pipeline orchestration | `src/Services/Pipeline/ContentPipeline.php` |
 | Stage contract | `src/Contracts/Pipe.php` |
 | Shared payload DTO | `src/Data/ContentPayload.php` |

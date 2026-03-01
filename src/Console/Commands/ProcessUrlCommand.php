@@ -1,10 +1,10 @@
 <?php
 
-namespace Bader\ContentPublisher\Console\Commands;
+namespace Badr\ScribeAi\Console\Commands;
 
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Jobs\ProcessContentPipelineJob;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Jobs\ProcessContentPipelineJob;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 use Illuminate\Console\Command;
 
 /**

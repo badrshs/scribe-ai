@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Ai;
+namespace Badr\ScribeAi\Services\Ai;
 
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -96,7 +96,7 @@ class AiService
      * @return array<string, mixed>
      */
     protected function sendChatRequest(
-        \Bader\ContentPublisher\Contracts\AiProvider $provider,
+        \Badr\ScribeAi\Contracts\AiProvider $provider,
         array $messages,
         string $model,
         int $maxTokens,

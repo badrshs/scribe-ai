@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Console\Commands;
+namespace Badr\ScribeAi\Console\Commands;
 
-use Bader\ContentPublisher\Jobs\PublishArticleJob;
-use Bader\ContentPublisher\Models\Article;
+use Badr\ScribeAi\Jobs\PublishArticleJob;
+use Badr\ScribeAi\Models\Article;
 use Illuminate\Console\Command;
 
 /**

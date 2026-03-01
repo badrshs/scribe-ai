@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Enums;
+namespace Badr\ScribeAi\Enums;
 
 enum ArticleStatus: string
 {

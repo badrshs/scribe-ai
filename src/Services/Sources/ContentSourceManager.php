@@ -1,11 +1,11 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Sources;
+namespace Badr\ScribeAi\Services\Sources;
 
-use Bader\ContentPublisher\Contracts\ContentSource;
-use Bader\ContentPublisher\Services\Sources\Drivers\RssDriver;
-use Bader\ContentPublisher\Services\Sources\Drivers\TextDriver;
-use Bader\ContentPublisher\Services\Sources\Drivers\WebDriver;
+use Badr\ScribeAi\Contracts\ContentSource;
+use Badr\ScribeAi\Services\Sources\Drivers\RssDriver;
+use Badr\ScribeAi\Services\Sources\Drivers\TextDriver;
+use Badr\ScribeAi\Services\Sources\Drivers\WebDriver;
 use Closure;
 use InvalidArgumentException;
 

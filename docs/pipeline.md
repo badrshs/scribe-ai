@@ -36,8 +36,8 @@ php artisan scribe:process-url https://example.com/article --sync
 **Programmatic:**
 
 ```php
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 
 $pipeline = app(ContentPipeline::class);
 
@@ -56,7 +56,7 @@ if ($result->rejected) {
 **Via Job (queued):**
 
 ```php
-use Bader\ContentPublisher\Jobs\ProcessContentPipelineJob;
+use Badr\ScribeAi\Jobs\ProcessContentPipelineJob;
 
 ProcessContentPipelineJob::dispatch(url: 'https://example.com/article');
 ```
@@ -67,7 +67,7 @@ ProcessContentPipelineJob::dispatch(url: 'https://example.com/article');
 Override stages for a single `process()` call:
 
 ```php
-use Bader\ContentPublisher\Services\Pipeline\Stages\*;
+use Badr\ScribeAi\Services\Pipeline\Stages\*;
 
 $pipeline->through([
     ScrapeStage::class,

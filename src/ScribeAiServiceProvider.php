@@ -1,31 +1,31 @@
 <?php
 
-namespace Bader\ContentPublisher;
+namespace Badr\ScribeAi;
 
-use Bader\ContentPublisher\Console\Commands\InstallCommand;
-use Bader\ContentPublisher\Console\Commands\ListRunsCommand;
-use Bader\ContentPublisher\Console\Commands\ProcessUrlCommand;
-use Bader\ContentPublisher\Console\Commands\PublishApprovedCommand;
-use Bader\ContentPublisher\Console\Commands\PublishArticleCommand;
-use Bader\ContentPublisher\Console\Commands\ResumeRunCommand;
-use Bader\ContentPublisher\Extensions\TelegramApproval\RssReviewCommand;
-use Bader\ContentPublisher\Extensions\TelegramApproval\SetWebhookCommand;
-use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramApprovalExtension;
-use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramPollCommand;
-use Bader\ContentPublisher\Services\Ai\AiProviderManager;
-use Bader\ContentPublisher\Services\Ai\AiService;
-use Bader\ContentPublisher\Services\Ai\ContentRewriter;
-use Bader\ContentPublisher\Services\Ai\ImageGenerator;
-use Bader\ContentPublisher\Services\Ai\SeoSuggester;
-use Bader\ContentPublisher\Services\ExtensionManager;
-use Bader\ContentPublisher\Services\ImageOptimizer;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
-use Bader\ContentPublisher\Services\Publishing\PublisherManager;
-use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
-use Bader\ContentPublisher\Services\WebScraper;
+use Badr\ScribeAi\Console\Commands\InstallCommand;
+use Badr\ScribeAi\Console\Commands\ListRunsCommand;
+use Badr\ScribeAi\Console\Commands\ProcessUrlCommand;
+use Badr\ScribeAi\Console\Commands\PublishApprovedCommand;
+use Badr\ScribeAi\Console\Commands\PublishArticleCommand;
+use Badr\ScribeAi\Console\Commands\ResumeRunCommand;
+use Badr\ScribeAi\Extensions\TelegramApproval\RssReviewCommand;
+use Badr\ScribeAi\Extensions\TelegramApproval\SetWebhookCommand;
+use Badr\ScribeAi\Extensions\TelegramApproval\TelegramApprovalExtension;
+use Badr\ScribeAi\Extensions\TelegramApproval\TelegramPollCommand;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
+use Badr\ScribeAi\Services\Ai\AiService;
+use Badr\ScribeAi\Services\Ai\ContentRewriter;
+use Badr\ScribeAi\Services\Ai\ImageGenerator;
+use Badr\ScribeAi\Services\Ai\SeoSuggester;
+use Badr\ScribeAi\Services\ExtensionManager;
+use Badr\ScribeAi\Services\ImageOptimizer;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Services\Publishing\PublisherManager;
+use Badr\ScribeAi\Services\Sources\ContentSourceManager;
+use Badr\ScribeAi\Services\WebScraper;
 use Illuminate\Support\ServiceProvider;
 
-class ContentPublisherServiceProvider extends ServiceProvider
+class ScribeAiServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

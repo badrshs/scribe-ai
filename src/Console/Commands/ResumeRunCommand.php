@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Console\Commands;
+namespace Badr\ScribeAi\Console\Commands;
 
-use Bader\ContentPublisher\Models\PipelineRun;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Models\PipelineRun;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 use Illuminate\Console\Command;
 
 /**

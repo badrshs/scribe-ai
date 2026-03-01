@@ -1,15 +1,15 @@
 <?php
 
-namespace Bader\ContentPublisher\Facades;
+namespace Badr\ScribeAi\Facades;
 
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline as ContentPipelineService;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline as ContentPipelineService;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Bader\ContentPublisher\Data\ContentPayload process(\Bader\ContentPublisher\Data\ContentPayload $payload)
+ * @method static \Badr\ScribeAi\Data\ContentPayload process(\Badr\ScribeAi\Data\ContentPayload $payload)
  * @method static static through(array $stages)
  *
- * @see \Bader\ContentPublisher\Services\Pipeline\ContentPipeline
+ * @see \Badr\ScribeAi\Services\Pipeline\ContentPipeline
  */
 class ContentPipeline extends Facade
 {

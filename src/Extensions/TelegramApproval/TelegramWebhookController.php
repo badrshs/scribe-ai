@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Extensions\TelegramApproval;
+namespace Badr\ScribeAi\Extensions\TelegramApproval;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

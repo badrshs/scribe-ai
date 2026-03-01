@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
 /**
  * Contract for content source drivers.

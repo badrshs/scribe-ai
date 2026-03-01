@@ -24,13 +24,13 @@ Current coverage: **53 Feature tests, 132 assertions**.
 
 The package's `TestCase` base class extends `Orchestra\Testbench\TestCase` and automatically:
 
-- Registers `ContentPublisherServiceProvider`
+- Registers `ScribeAiServiceProvider`
 - Loads package migrations
 - Sets `scribe-ai.tracking.enabled` to `false` (avoids database writes for run tracking in tests)
 - Uses an in-memory SQLite database
 
 ```php
-use Bader\ContentPublisher\Tests\TestCase;
+use Badr\ScribeAi\Tests\TestCase;
 
 class MyTest extends TestCase
 {
@@ -63,9 +63,9 @@ class MyTest extends TestCase
 ```php
 <?php
 
-namespace Bader\ContentPublisher\Tests\Feature;
+namespace Badr\ScribeAi\Tests\Feature;
 
-use Bader\ContentPublisher\Tests\TestCase;
+use Badr\ScribeAi\Tests\TestCase;
 
 class MyFeatureTest extends TestCase
 {
@@ -88,7 +88,7 @@ class MyFeatureTest extends TestCase
 When testing the pipeline directly, disable run tracking to avoid requiring the `pipeline_runs` table:
 
 ```php
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 
 $pipeline = app(ContentPipeline::class)->withoutTracking();
 $result = $pipeline->process($payload);
@@ -100,8 +100,8 @@ $result = $pipeline->process($payload);
 ### Mock a Built-in Provider
 
 ```php
-use Bader\ContentPublisher\Contracts\AiProvider;
-use Bader\ContentPublisher\Services\Ai\AiProviderManager;
+use Badr\ScribeAi\Contracts\AiProvider;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
 
 public function test_pipeline_with_mock_ai(): void
 {
@@ -154,9 +154,9 @@ Use Laravel's `Event::fake()` to assert events are dispatched:
 
 ```php
 use Illuminate\Support\Facades\Event;
-use Bader\ContentPublisher\Events\PipelineStarted;
-use Bader\ContentPublisher\Events\PipelineCompleted;
-use Bader\ContentPublisher\Events\ContentScraped;
+use Badr\ScribeAi\Events\PipelineStarted;
+use Badr\ScribeAi\Events\PipelineCompleted;
+use Badr\ScribeAi\Events\ContentScraped;
 
 public function test_pipeline_dispatches_events(): void
 {
@@ -196,8 +196,8 @@ public function test_skipped_stage_does_not_fire_event(): void
 ### Test a Single Stage
 
 ```php
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Services\Pipeline\Stages\ScrapeStage;
 
 public function test_scrape_stage_extracts_content(): void
 {
@@ -244,7 +244,7 @@ $this->assertEquals('log', $results[0]->channel);
 ### Mock a Driver
 
 ```php
-use Bader\ContentPublisher\Contracts\Publisher;
+use Badr\ScribeAi\Contracts\Publisher;
 
 $mock = $this->createMock(Publisher::class);
 $mock->method('publish')->willReturn(new PublishResult(

@@ -200,12 +200,12 @@ return [
 
     'pipeline' => [
         'stages' => [
-            Bader\ContentPublisher\Services\Pipeline\Stages\ScrapeStage::class,
-            Bader\ContentPublisher\Services\Pipeline\Stages\AiRewriteStage::class,
-            Bader\ContentPublisher\Services\Pipeline\Stages\GenerateImageStage::class,
-            Bader\ContentPublisher\Services\Pipeline\Stages\OptimizeImageStage::class,
-            Bader\ContentPublisher\Services\Pipeline\Stages\CreateArticleStage::class,
-            Bader\ContentPublisher\Services\Pipeline\Stages\PublishStage::class,
+            Badr\ScribeAi\Services\Pipeline\Stages\ScrapeStage::class,
+            Badr\ScribeAi\Services\Pipeline\Stages\AiRewriteStage::class,
+            Badr\ScribeAi\Services\Pipeline\Stages\GenerateImageStage::class,
+            Badr\ScribeAi\Services\Pipeline\Stages\OptimizeImageStage::class,
+            Badr\ScribeAi\Services\Pipeline\Stages\CreateArticleStage::class,
+            Badr\ScribeAi\Services\Pipeline\Stages\PublishStage::class,
         ],
 
         /*
@@ -305,7 +305,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Register your own extension classes here. Each class must implement
-    | Bader\ContentPublisher\Contracts\Extension. Extensions are loaded
+    | Badr\ScribeAi\Contracts\Extension. Extensions are loaded
     | only when their isEnabled() method returns true.
     |
     | Example:

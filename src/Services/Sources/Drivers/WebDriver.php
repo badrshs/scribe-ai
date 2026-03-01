@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Sources\Drivers;
+namespace Badr\ScribeAi\Services\Sources\Drivers;
 
-use Bader\ContentPublisher\Contracts\ContentSource;
-use Bader\ContentPublisher\Services\WebScraper;
+use Badr\ScribeAi\Contracts\ContentSource;
+use Badr\ScribeAi\Services\WebScraper;
 use Illuminate\Support\Facades\Log;
 
 /**

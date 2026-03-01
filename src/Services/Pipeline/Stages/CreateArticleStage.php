@@ -1,14 +1,14 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Pipeline\Stages;
+namespace Badr\ScribeAi\Services\Pipeline\Stages;
 
-use Bader\ContentPublisher\Contracts\Pipe;
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Enums\ArticleStatus;
-use Bader\ContentPublisher\Events\ArticleCreated;
-use Bader\ContentPublisher\Models\Article;
-use Bader\ContentPublisher\Models\Tag;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Contracts\Pipe;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Enums\ArticleStatus;
+use Badr\ScribeAi\Events\ArticleCreated;
+use Badr\ScribeAi\Models\Article;
+use Badr\ScribeAi\Models\Tag;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;

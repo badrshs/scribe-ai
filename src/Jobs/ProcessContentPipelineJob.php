@@ -1,10 +1,10 @@
 <?php
 
-namespace Bader\ContentPublisher\Jobs;
+namespace Badr\ScribeAi\Jobs;
 
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Models\StagedContent;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Models\StagedContent;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

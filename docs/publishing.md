@@ -43,7 +43,7 @@ When `publishToChannels()` is called:
 5. **Log result** — success or failure is persisted to `publish_logs`
 
 ```php
-use Bader\ContentPublisher\Services\Publishing\PublisherManager;
+use Badr\ScribeAi\Services\Publishing\PublisherManager;
 
 $publisher = app(PublisherManager::class);
 

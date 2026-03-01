@@ -1,12 +1,12 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Pipeline\Stages;
+namespace Badr\ScribeAi\Services\Pipeline\Stages;
 
-use Bader\ContentPublisher\Contracts\Pipe;
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Events\ImageGenerated;
-use Bader\ContentPublisher\Services\Ai\ImageGenerator;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Contracts\Pipe;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Events\ImageGenerated;
+use Badr\ScribeAi\Services\Ai\ImageGenerator;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 use Closure;
 use Illuminate\Support\Facades\Log;
 

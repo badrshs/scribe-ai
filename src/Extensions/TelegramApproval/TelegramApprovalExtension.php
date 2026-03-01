@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Extensions\TelegramApproval;
+namespace Badr\ScribeAi\Extensions\TelegramApproval;
 
-use Bader\ContentPublisher\Contracts\Extension;
+use Badr\ScribeAi\Contracts\Extension;
 use Illuminate\Contracts\Foundation\Application;
 
 /**

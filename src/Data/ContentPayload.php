@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Data;
+namespace Badr\ScribeAi\Data;
 
-use Bader\ContentPublisher\Models\Article;
-use Bader\ContentPublisher\Models\StagedContent;
+use Badr\ScribeAi\Models\Article;
+use Badr\ScribeAi\Models\StagedContent;
 
 /**
  * Immutable payload that flows through the content pipeline.

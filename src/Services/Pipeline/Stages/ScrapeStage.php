@@ -1,12 +1,12 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Pipeline\Stages;
+namespace Badr\ScribeAi\Services\Pipeline\Stages;
 
-use Bader\ContentPublisher\Contracts\Pipe;
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Events\ContentScraped;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
-use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
+use Badr\ScribeAi\Contracts\Pipe;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Events\ContentScraped;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Services\Sources\ContentSourceManager;
 use Closure;
 use Illuminate\Support\Facades\Log;
 

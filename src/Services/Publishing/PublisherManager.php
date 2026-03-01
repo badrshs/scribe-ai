@@ -1,16 +1,16 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Publishing;
+namespace Badr\ScribeAi\Services\Publishing;
 
-use Bader\ContentPublisher\Contracts\Publisher;
-use Bader\ContentPublisher\Data\PublishResult;
-use Bader\ContentPublisher\Models\Article;
-use Bader\ContentPublisher\Models\PublishLog;
-use Bader\ContentPublisher\Services\Publishing\Drivers\BloggerDriver;
-use Bader\ContentPublisher\Services\Publishing\Drivers\FacebookDriver;
-use Bader\ContentPublisher\Services\Publishing\Drivers\LogDriver;
-use Bader\ContentPublisher\Services\Publishing\Drivers\TelegramDriver;
-use Bader\ContentPublisher\Services\Publishing\Drivers\WordPressDriver;
+use Badr\ScribeAi\Contracts\Publisher;
+use Badr\ScribeAi\Data\PublishResult;
+use Badr\ScribeAi\Models\Article;
+use Badr\ScribeAi\Models\PublishLog;
+use Badr\ScribeAi\Services\Publishing\Drivers\BloggerDriver;
+use Badr\ScribeAi\Services\Publishing\Drivers\FacebookDriver;
+use Badr\ScribeAi\Services\Publishing\Drivers\LogDriver;
+use Badr\ScribeAi\Services\Publishing\Drivers\TelegramDriver;
+use Badr\ScribeAi\Services\Publishing\Drivers\WordPressDriver;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;

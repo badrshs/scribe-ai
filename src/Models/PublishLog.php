@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Models;
+namespace Badr\ScribeAi\Models;
 
-use Bader\ContentPublisher\Enums\PublishStatus;
+use Badr\ScribeAi\Enums\PublishStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

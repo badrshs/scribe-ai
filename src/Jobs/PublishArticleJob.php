@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Jobs;
+namespace Badr\ScribeAi\Jobs;
 
-use Bader\ContentPublisher\Models\Article;
-use Bader\ContentPublisher\Services\Publishing\PublisherManager;
+use Badr\ScribeAi\Models\Article;
+use Badr\ScribeAi\Services\Publishing\PublisherManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

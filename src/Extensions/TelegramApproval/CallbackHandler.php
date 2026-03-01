@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Extensions\TelegramApproval;
+namespace Badr\ScribeAi\Extensions\TelegramApproval;
 
-use Bader\ContentPublisher\Jobs\ProcessContentPipelineJob;
-use Bader\ContentPublisher\Models\StagedContent;
+use Badr\ScribeAi\Jobs\ProcessContentPipelineJob;
+use Badr\ScribeAi\Models\StagedContent;
 use Illuminate\Support\Facades\Log;
 
 /**

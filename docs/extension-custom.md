@@ -17,7 +17,7 @@ Build your own extensions to add complete workflows on top of the Scribe AI pipe
 ## The Extension Contract
 
 ```php
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
 use Illuminate\Contracts\Foundation\Application;
 
@@ -47,7 +47,7 @@ interface Extension
 
 namespace App\Extensions;
 
-use Bader\ContentPublisher\Contracts\Extension;
+use Badr\ScribeAi\Contracts\Extension;
 use Illuminate\Contracts\Foundation\Application;
 
 class SlackApprovalExtension implements Extension
@@ -94,7 +94,7 @@ class SlackApprovalExtension implements Extension
 
         // Register event listeners
         \Illuminate\Support\Facades\Event::listen(
-            \Bader\ContentPublisher\Events\ArticleCreated::class,
+            \Badr\ScribeAi\Events\ArticleCreated::class,
             function ($event) {
                 app(SlackApprovalService::class)->notifyChannel(
                     "New article created: {$event->article->title}"
@@ -123,7 +123,7 @@ Add your class to `config/scribe-ai.php`:
 In your service provider:
 
 ```php
-use Bader\ContentPublisher\Services\ExtensionManager;
+use Badr\ScribeAi\Services\ExtensionManager;
 
 public function register(): void
 {

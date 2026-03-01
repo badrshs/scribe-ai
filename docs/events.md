@@ -43,8 +43,8 @@ All events use the `Dispatchable` and `SerializesModels` traits, making them com
 ### In EventServiceProvider
 
 ```php
-use Bader\ContentPublisher\Events\ArticleCreated;
-use Bader\ContentPublisher\Events\PipelineCompleted;
+use Badr\ScribeAi\Events\ArticleCreated;
+use Badr\ScribeAi\Events\PipelineCompleted;
 
 protected $listen = [
     ArticleCreated::class => [
@@ -60,7 +60,7 @@ protected $listen = [
 
 ```php
 use Illuminate\Support\Facades\Event;
-use Bader\ContentPublisher\Events\ArticlePublished;
+use Badr\ScribeAi\Events\ArticlePublished;
 
 Event::listen(ArticlePublished::class, function (ArticlePublished $event) {
     Log::info("Published to {$event->channel}", [
@@ -73,7 +73,7 @@ Event::listen(ArticlePublished::class, function (ArticlePublished $event) {
 ### Queued Listeners
 
 ```php
-use Bader\ContentPublisher\Events\PipelineCompleted;
+use Badr\ScribeAi\Events\PipelineCompleted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendCompletionNotification implements ShouldQueue

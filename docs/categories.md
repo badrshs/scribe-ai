@@ -54,7 +54,7 @@ The `categories` migration creates a table for persistent categories:
 | `description` | text nullable | Category description |
 
 ```php
-use Bader\ContentPublisher\Models\Category;
+use Badr\ScribeAi\Models\Category;
 
 // Create categories
 Category::create(['name' => 'Technology', 'slug' => 'technology']);

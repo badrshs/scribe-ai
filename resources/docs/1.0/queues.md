@@ -48,7 +48,7 @@ Runs the full content pipeline for a single URL.
 | **Middleware** | `WithoutOverlapping` (keyed by URL) |
 
 ```php
-use Bader\ContentPublisher\Jobs\ProcessContentPipelineJob;
+use Badr\ScribeAi\Jobs\ProcessContentPipelineJob;
 
 ProcessContentPipelineJob::dispatch($url);
 
@@ -73,7 +73,7 @@ Publishes a saved article to one or more channels.
 | **Backoff** | `[60, 300]` seconds |
 
 ```php
-use Bader\ContentPublisher\Jobs\PublishArticleJob;
+use Badr\ScribeAi\Jobs\PublishArticleJob;
 
 // Publish to all configured channels
 PublishArticleJob::dispatch($articleId);

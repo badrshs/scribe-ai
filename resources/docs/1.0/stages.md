@@ -10,12 +10,12 @@
 <a name="stage-contract"></a>
 ## Stage Contract
 
-Every stage implements `Bader\ContentPublisher\Contracts\Pipe`:
+Every stage implements `Badr\ScribeAi\Contracts\Pipe`:
 
 ```php
-namespace Bader\ContentPublisher\Contracts;
+namespace Badr\ScribeAi\Contracts;
 
-use Bader\ContentPublisher\Data\ContentPayload;
+use Badr\ScribeAi\Data\ContentPayload;
 use Closure;
 
 interface Pipe
@@ -111,8 +111,8 @@ Publishes the article to all active channels via `PublisherManager`.
 
 namespace App\Pipeline\Stages;
 
-use Bader\ContentPublisher\Contracts\Pipe;
-use Bader\ContentPublisher\Data\ContentPayload;
+use Badr\ScribeAi\Contracts\Pipe;
+use Badr\ScribeAi\Data\ContentPayload;
 use Closure;
 use Illuminate\Support\Facades\Log;
 

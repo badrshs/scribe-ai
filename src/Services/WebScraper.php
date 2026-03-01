@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Services;
+namespace Badr\ScribeAi\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

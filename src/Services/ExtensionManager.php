@@ -1,8 +1,8 @@
 <?php
 
-namespace Bader\ContentPublisher\Services;
+namespace Badr\ScribeAi\Services;
 
-use Bader\ContentPublisher\Contracts\Extension;
+use Badr\ScribeAi\Contracts\Extension;
 use Illuminate\Contracts\Foundation\Application;
 
 /**

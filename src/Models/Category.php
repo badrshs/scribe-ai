@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Models;
+namespace Badr\ScribeAi\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

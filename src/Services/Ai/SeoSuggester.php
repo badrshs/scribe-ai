@@ -1,6 +1,6 @@
 <?php
 
-namespace Bader\ContentPublisher\Services\Ai;
+namespace Badr\ScribeAi\Services\Ai;
 
 use Illuminate\Support\Str;
 

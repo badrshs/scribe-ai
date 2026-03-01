@@ -203,10 +203,10 @@ The `AI_IMAGE_PROVIDER` env var lets you use one provider for chat/rewriting and
 
 ### Registering custom AI providers
 
-Create a class implementing `Bader\ContentPublisher\Contracts\AiProvider`:
+Create a class implementing `Badr\ScribeAi\Contracts\AiProvider`:
 
 ```php
-use Bader\ContentPublisher\Contracts\AiProvider;
+use Badr\ScribeAi\Contracts\AiProvider;
 
 class PerplexityProvider implements AiProvider
 {
@@ -231,7 +231,7 @@ class PerplexityProvider implements AiProvider
 Register it:
 
 ```php
-use Bader\ContentPublisher\Services\Ai\AiProviderManager;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
 
 app(AiProviderManager::class)->extend('perplexity', fn(array $config) => new PerplexityProvider($config));
 ```
@@ -258,16 +258,16 @@ Every pipeline stage dispatches a Laravel event, letting you hook into the conte
 | `ArticleCreated` | CreateArticleStage persists to DB | `payload`, `article` |
 | `ArticlePublished` | Each channel publish attempt | `payload`, `result`, `channel` |
 
-All events are in the `Bader\ContentPublisher\Events` namespace.
+All events are in the `Badr\ScribeAi\Events` namespace.
 
 ### Listening to events
 
 Register listeners in your `EventServiceProvider` or use closures:
 
 ```php
-use Bader\ContentPublisher\Events\ArticleCreated;
-use Bader\ContentPublisher\Events\PipelineFailed;
-use Bader\ContentPublisher\Events\ContentRewritten;
+use Badr\ScribeAi\Events\ArticleCreated;
+use Badr\ScribeAi\Events\PipelineFailed;
+use Badr\ScribeAi\Events\ContentRewritten;
 
 // In EventServiceProvider::$listen
 protected $listen = [
@@ -285,7 +285,7 @@ Or listen inline:
 
 ```php
 use Illuminate\Support\Facades\Event;
-use Bader\ContentPublisher\Events\ContentRewritten;
+use Badr\ScribeAi\Events\ContentRewritten;
 
 Event::listen(ContentRewritten::class, function (ContentRewritten $event) {
     logger()->info("Article rewritten: {$event->title}", [
@@ -337,10 +337,10 @@ php artisan scribe:publish-approved --limit=5
 ### Programmatic API
 
 ```php
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Facades\ContentPipeline;
-use Bader\ContentPublisher\Facades\Publisher;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline as Pipeline;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Facades\ContentPipeline;
+use Badr\ScribeAi\Facades\Publisher;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline as Pipeline;
 
 // Run the full pipeline
 $payload = ContentPipeline::process(
@@ -377,11 +377,11 @@ Publisher::publishToChannels($article);
 
 ### Custom Pipeline Stages
 
-Create a class that implements `Bader\ContentPublisher\Contracts\Pipe`:
+Create a class that implements `Badr\ScribeAi\Contracts\Pipe`:
 
 ```php
-use Bader\ContentPublisher\Contracts\Pipe;
-use Bader\ContentPublisher\Data\ContentPayload;
+use Badr\ScribeAi\Contracts\Pipe;
+use Badr\ScribeAi\Data\ContentPayload;
 use Closure;
 
 class TranslateStage implements Pipe
@@ -407,10 +407,10 @@ ContentPipeline::through([
 
 ### Custom Publish Drivers
 
-Implement `Bader\ContentPublisher\Contracts\Publisher` and register the driver in a service provider:
+Implement `Badr\ScribeAi\Contracts\Publisher` and register the driver in a service provider:
 
 ```php
-use Bader\ContentPublisher\Facades\Publisher;
+use Badr\ScribeAi\Facades\Publisher;
 
 Publisher::extend('medium', fn (array $config) => new MediumDriver($config));
 ```
@@ -498,8 +498,8 @@ php artisan scribe:process-url https://blog.com/feed.xml --sync --source=rss
 
 **Programmatic:**
 ```php
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 
 // Auto-detect
 $payload = ContentPayload::fromUrl('https://blog.com/feed.xml');
@@ -515,7 +515,7 @@ app(ContentPipeline::class)->process($payload);
 
 **Fetch content without the pipeline:**
 ```php
-use Bader\ContentPublisher\Facades\ContentSource;
+use Badr\ScribeAi\Facades\ContentSource;
 
 // Auto-detect
 $result = ContentSource::fetch('https://example.com/article');
@@ -527,10 +527,10 @@ $result = ContentSource::driver('rss')->fetch('https://blog.com/feed.xml');
 
 ### Registering custom source drivers
 
-Create a class implementing `Bader\ContentPublisher\Contracts\ContentSource`:
+Create a class implementing `Badr\ScribeAi\Contracts\ContentSource`:
 
 ```php
-use Bader\ContentPublisher\Contracts\ContentSource;
+use Badr\ScribeAi\Contracts\ContentSource;
 
 class YouTubeTranscriptSource implements ContentSource
 {
@@ -556,7 +556,7 @@ class YouTubeTranscriptSource implements ContentSource
 
 Register it in a service provider:
 ```php
-use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
+use Badr\ScribeAi\Services\Sources\ContentSourceManager;
 
 app(ContentSourceManager::class)->extend('youtube', fn(array $config) => new YouTubeTranscriptSource($config));
 ```
@@ -611,7 +611,7 @@ php artisan scribe:resume 42
 
 **Programmatic:**
 ```php
-use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
+use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
 
 $pipeline = app(ContentPipeline::class);
 
@@ -813,10 +813,10 @@ routes/
 
 ### Creating Custom Extensions
 
-You can build your own extensions on top of the core pipeline. Every extension implements `Bader\ContentPublisher\Contracts\Extension`:
+You can build your own extensions on top of the core pipeline. Every extension implements `Badr\ScribeAi\Contracts\Extension`:
 
 ```php
-use Bader\ContentPublisher\Contracts\Extension;
+use Badr\ScribeAi\Contracts\Extension;
 use Illuminate\Contracts\Foundation\Application;
 
 class SlackApprovalExtension implements Extension
@@ -857,7 +857,7 @@ Register your extension in `config/scribe-ai.php`:
 Or register it programmatically from any service provider:
 
 ```php
-use Bader\ContentPublisher\Services\ExtensionManager;
+use Badr\ScribeAi\Services\ExtensionManager;
 
 public function register(): void
 {
@@ -873,7 +873,7 @@ The `ExtensionManager` calls `register()` and `boot()` only when `isEnabled()` r
 You can also query the registry at runtime:
 
 ```php
-use Bader\ContentPublisher\Services\ExtensionManager;
+use Badr\ScribeAi\Services\ExtensionManager;
 
 $manager = app(ExtensionManager::class);
 

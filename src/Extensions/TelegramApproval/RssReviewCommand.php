@@ -1,10 +1,10 @@
 <?php
 
-namespace Bader\ContentPublisher\Extensions\TelegramApproval;
+namespace Badr\ScribeAi\Extensions\TelegramApproval;
 
-use Bader\ContentPublisher\Models\StagedContent;
-use Bader\ContentPublisher\Services\Ai\AiService;
-use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
+use Badr\ScribeAi\Models\StagedContent;
+use Badr\ScribeAi\Services\Ai\AiService;
+use Badr\ScribeAi\Services\Sources\ContentSourceManager;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;

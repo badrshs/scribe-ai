@@ -1,9 +1,9 @@
 <?php
 
-namespace Bader\ContentPublisher\Events;
+namespace Badr\ScribeAi\Events;
 
-use Bader\ContentPublisher\Data\ContentPayload;
-use Bader\ContentPublisher\Data\PublishResult;
+use Badr\ScribeAi\Data\ContentPayload;
+use Badr\ScribeAi\Data\PublishResult;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
