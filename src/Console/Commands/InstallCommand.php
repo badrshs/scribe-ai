@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\File;
 class InstallCommand extends Command
 {
     protected $signature = 'scribe:install
-        {--force : Overwrite existing config/migrations}
-        {--no-interaction : Skip prompts and use defaults}';
+        {--force : Overwrite existing config/migrations}';
 
     protected $description = 'Install and configure Scribe AI interactively';
 

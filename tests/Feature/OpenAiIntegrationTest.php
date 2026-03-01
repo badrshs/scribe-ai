@@ -5,6 +5,7 @@ namespace Badr\ScribeAi\Tests\Feature;
 use Badr\ScribeAi\Data\ContentPayload;
 use Badr\ScribeAi\Models\Category;
 use Badr\ScribeAi\Services\Ai\AiService;
+use Badr\ScribeAi\Services\Ai\AiProviderManager;
 use Badr\ScribeAi\Services\Ai\ImageGenerator;
 use Badr\ScribeAi\Services\ImageOptimizer;
 use Badr\ScribeAi\Services\Pipeline\ContentPipeline;
@@ -48,6 +49,7 @@ class OpenAiIntegrationTest extends TestCase
                     $value = trim($value);
                     if ($key === 'OPENAI_API_KEY') {
                         config(['scribe-ai.ai.api_key' => $value]);
+                        config(['scribe-ai.ai.providers.openai.api_key' => $value]);
                     }
                     if ($key === 'OPENAI_CONTENT_MODEL') {
                         config(['scribe-ai.ai.content_model' => $value]);
@@ -66,6 +68,13 @@ class OpenAiIntegrationTest extends TestCase
                 'No real OpenAI API key configured. Set OPENAI_API_KEY in .env.testing to run integration tests.'
             );
         }
+
+        // Re-bind the entire AI service chain so it picks up the real API key
+        // (singletons may have been resolved during boot with the fake key)
+        $this->app->forgetInstance(AiProviderManager::class);
+        $this->app->forgetInstance(AiService::class);
+        $this->app->singleton(AiProviderManager::class, fn() => new AiProviderManager());
+        $this->app->singleton(AiService::class, fn($app) => new AiService($app->make(AiProviderManager::class)));
     }
 
     #[Test]
