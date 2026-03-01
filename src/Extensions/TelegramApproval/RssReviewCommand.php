@@ -174,7 +174,19 @@ class RssReviewCommand extends Command
         if (! $silent) {
             $this->newLine();
             $this->components->info("Sent {$sent} entries to Telegram for review.");
-            $this->line('  <fg=gray>Approve or reject them in Telegram, then run <comment>scribe:telegram-poll</comment> to process decisions.</>');
+            $this->newLine();
+
+            if (app(TelegramApprovalService::class)->resolveWebhookUrl()) {
+                $this->line('  <fg=gray>A webhook is configured - approved entries will be processed automatically.</>');
+                $this->line('  <fg=gray>Rejected entries are discarded and will not be published.</>');
+            } else {
+                $this->line('  <fg=gray>No webhook detected. Run <comment>scribe:telegram-poll</comment> to listen for decisions.</>');
+                $this->line('  <fg=gray>Alternatively, set <comment>TELEGRAM_WEBHOOK_URL</comment> or <comment>APP_URL</comment> for automatic processing.</>');
+            }
+
+            $this->newLine();
+            $this->line('  <fg=gray>Approved -> full pipeline runs (scrape, rewrite, image, publish)</>');
+            $this->line('  <fg=gray>Rejected -> entry is marked as rejected, nothing is published</>');
         }
 
         return self::SUCCESS;
