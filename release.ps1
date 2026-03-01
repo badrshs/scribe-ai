@@ -24,9 +24,10 @@ function Get-NextVersion([string]$lastTag, [string]$bumpType) {
     $patch = if ($parts.Count -gt 2) { [int]$parts[2] } else { 0 }
 
     switch ($bumpType) {
-        "1" { $minor++; $patch = 0 }          # minor
-        "2" { $major++; $minor = 0; $patch = 0 }  # major
-        default { $patch++ }                       # patch
+        "1" { $patch++ }                               # patch
+        "2" { $minor++; $patch = 0 }                   # minor
+        "3" { $major++; $minor = 0; $patch = 0 }       # major
+        default { $patch++ }                            # default to patch
     }
 
     return "v$major.$minor.$patch"
@@ -52,9 +53,11 @@ if ([string]::IsNullOrWhiteSpace($remote)) {
 # -- Header ---------------------------------------
 Write-Banner "Content Publisher Release"
 
-# -- Detect last tag --------------------------------
+# -- Detect last tag (highest version, not nearest commit) --
 $lastTag = $null
-try { $lastTag = (git describe --tags --abbrev=0 2>&1) | Where-Object { $_ -notmatch 'fatal' } | Select-Object -First 1 } catch {}
+try {
+    $lastTag = (git tag --sort=-v:refname 2>&1) | Where-Object { $_ -match '^v?\d+\.\d+' } | Select-Object -First 1
+} catch {}
 
 Write-Host "  Remote:        " -NoNewline; Write-Host $remote -ForegroundColor Cyan
 Write-Host "  Branch:        " -NoNewline; Write-Host $Branch -ForegroundColor Cyan
@@ -68,7 +71,7 @@ Write-Host ""
 # -- Choose bump type --------------------------------
 Write-Banner "Version Bump"
 
-Write-Host "  [Enter] Patch   [1] Minor   [2] Major" -ForegroundColor DarkGray
+Write-Host "  [1] Patch   [2] Minor   [3] Major" -ForegroundColor DarkGray
 $bumpType = Read-Host "  Release type"
 
 $nextTag = Get-NextVersion $lastTag $bumpType
