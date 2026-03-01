@@ -4,6 +4,7 @@ namespace Bader\ContentPublisher\Services\Pipeline\Stages;
 
 use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Events\ContentScraped;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Bader\ContentPublisher\Services\Sources\ContentSourceManager;
 use Closure;
@@ -71,6 +72,10 @@ class ScrapeStage implements Pipe
 
         $pipeline->reportProgress('Scrape', "completed — {$contentLength} chars via {$resolvedDriver} driver");
 
-        return $next($payload->with($overrides));
+        $newPayload = $payload->with($overrides);
+
+        event(new ContentScraped($newPayload, $resolvedDriver, $contentLength));
+
+        return $next($newPayload);
     }
 }

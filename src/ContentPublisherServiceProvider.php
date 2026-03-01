@@ -2,6 +2,7 @@
 
 namespace Bader\ContentPublisher;
 
+use Bader\ContentPublisher\Console\Commands\InstallCommand;
 use Bader\ContentPublisher\Console\Commands\ListRunsCommand;
 use Bader\ContentPublisher\Console\Commands\ProcessUrlCommand;
 use Bader\ContentPublisher\Console\Commands\PublishApprovedCommand;
@@ -11,6 +12,7 @@ use Bader\ContentPublisher\Extensions\TelegramApproval\RssReviewCommand;
 use Bader\ContentPublisher\Extensions\TelegramApproval\SetWebhookCommand;
 use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramApprovalExtension;
 use Bader\ContentPublisher\Extensions\TelegramApproval\TelegramPollCommand;
+use Bader\ContentPublisher\Services\Ai\AiProviderManager;
 use Bader\ContentPublisher\Services\Ai\AiService;
 use Bader\ContentPublisher\Services\Ai\ContentRewriter;
 use Bader\ContentPublisher\Services\Ai\ImageGenerator;
@@ -34,18 +36,20 @@ class ContentPublisherServiceProvider extends ServiceProvider
 
         $this->app->singleton(PublisherManager::class);
         $this->app->singleton(ContentSourceManager::class);
-        $this->app->singleton(AiService::class);
+        $this->app->singleton(AiProviderManager::class);
+        $this->app->singleton(AiService::class, fn($app) => new AiService($app->make(AiProviderManager::class)));
         $this->app->singleton(ContentPipeline::class);
         $this->app->singleton(ImageOptimizer::class);
         $this->app->singleton(WebScraper::class);
 
         $this->app->singleton(ContentRewriter::class, fn($app) => new ContentRewriter($app->make(AiService::class)));
         $this->app->singleton(SeoSuggester::class, fn($app) => new SeoSuggester($app->make(AiService::class)));
-        $this->app->singleton(ImageGenerator::class);
+        $this->app->singleton(ImageGenerator::class, fn($app) => new ImageGenerator($app->make(AiProviderManager::class)));
 
         $this->app->alias(PublisherManager::class, 'scribe-ai');
         $this->app->alias(ContentPipeline::class, 'scribe-pipeline');
         $this->app->alias(ContentSourceManager::class, 'scribe-source');
+        $this->app->alias(AiProviderManager::class, 'scribe-ai-provider');
 
         // ── Extension Manager ────────────────────────────────────────
         $this->app->singleton(ExtensionManager::class);
@@ -78,6 +82,7 @@ class ContentPublisherServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
             $commands = [
+                InstallCommand::class,
                 ListRunsCommand::class,
                 ProcessUrlCommand::class,
                 PublishApprovedCommand::class,

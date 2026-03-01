@@ -20,6 +20,8 @@ Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover ima
 - [Quick Start](#quick-start)
 - [How It Works](#how-it-works)
 - [Configuration](#configuration)
+- [AI Providers](#ai-providers)
+- [Events](#events)
 - [Usage](#usage)
   - [Artisan Commands](#artisan-commands)
   - [Programmatic API](#programmatic-api)
@@ -45,6 +47,16 @@ Scribe AI scrapes a webpage, rewrites the content with AI, generates a cover ima
 composer require badrshs/scribe-ai
 ```
 
+### Interactive Setup (Recommended)
+
+Run the install wizard — it publishes config/migrations, asks for your AI provider & API keys, configures publish channels, and writes everything to `.env`:
+
+```bash
+php artisan scribe:install
+```
+
+### Manual Setup
+
 Publish the config file and migrations, then migrate:
 
 ```bash
@@ -57,10 +69,14 @@ php artisan migrate
 
 ## Quick Start
 
-Add your OpenAI key to `.env`:
+Add your AI provider key to `.env`:
 
 ```env
+# OpenAI (default)
+AI_PROVIDER=openai
 OPENAI_API_KEY=sk-...
+
+# Or use Claude, Gemini, or Ollama — see "AI Providers" below
 ```
 
 Run the pipeline on any URL:
@@ -95,11 +111,24 @@ Stages are individually **skippable**, **replaceable**, and **reorderable** via 
 All config lives under `config/scribe-ai.php`. Key environment variables:
 
 ```env
-# -- AI ------------------------------------------------
+# -- AI Provider ---------------------------------------
+AI_PROVIDER=openai                      # openai, claude, gemini, ollama
+AI_IMAGE_PROVIDER=                      # separate provider for images (optional)
+AI_OUTPUT_LANGUAGE=English              # language for AI-written articles
+
+# -- OpenAI --------------------------------------------
 OPENAI_API_KEY=sk-...
 OPENAI_CONTENT_MODEL=gpt-4o-mini        # model for rewriting
 OPENAI_IMAGE_MODEL=dall-e-3             # model for image generation
-AI_OUTPUT_LANGUAGE=English              # language for AI-written articles
+
+# -- Anthropic Claude ----------------------------------
+ANTHROPIC_API_KEY=sk-ant-...
+
+# -- Google Gemini -------------------------------------
+GEMINI_API_KEY=AIza...
+
+# -- Ollama (local) ------------------------------------
+OLLAMA_HOST=http://localhost:11434
 
 # -- Pipeline ------------------------------------------
 PIPELINE_HALT_ON_ERROR=true             # stop on stage failure (default)
@@ -140,6 +169,130 @@ TELEGRAM_APPROVAL_BOT_TOKEN=            # defaults to TELEGRAM_BOT_TOKEN
 TELEGRAM_APPROVAL_CHAT_ID=              # defaults to TELEGRAM_CHAT_ID
 TELEGRAM_WEBHOOK_URL=                   # auto-resolved from APP_URL if empty
 TELEGRAM_WEBHOOK_SECRET=                # optional verification secret
+```
+
+---
+
+## AI Providers
+
+Scribe AI supports **multiple AI backends** via a driver-based `AiProviderManager`. Switch providers with a single env var — all internal code stays the same.
+
+### Built-in providers
+
+| Provider | Text/Chat | Image Gen | Env Key |
+|----------|-----------|-----------|---------|
+| **OpenAI** | GPT-4o, GPT-4o-mini, o1, o3, etc. | DALL-E 3 | `OPENAI_API_KEY` |
+| **Claude** | Claude Sonnet/Opus/Haiku | — | `ANTHROPIC_API_KEY` |
+| **Gemini** | Gemini 2.0 Flash, Pro, etc. | Imagen | `GEMINI_API_KEY` |
+| **Ollama** | Llama, Mistral, Phi, etc. (local) | — | `OLLAMA_HOST` |
+| **PiAPI** | — | Flux (via piapi.ai) | `PIAPI_API_KEY` |
+
+### Switching providers
+
+```env
+# Use Claude for text, OpenAI for images
+AI_PROVIDER=claude
+ANTHROPIC_API_KEY=sk-ant-...
+AI_IMAGE_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+```
+
+### Using different providers for text vs images
+
+The `AI_IMAGE_PROVIDER` env var lets you use one provider for chat/rewriting and another for image generation. If not set, the default `AI_PROVIDER` is used for images too (and falls back to OpenAI if the default provider doesn't support images).
+
+### Registering custom AI providers
+
+Create a class implementing `Bader\ContentPublisher\Contracts\AiProvider`:
+
+```php
+use Bader\ContentPublisher\Contracts\AiProvider;
+
+class PerplexityProvider implements AiProvider
+{
+    public function __construct(protected array $config) {}
+
+    public function chat(array $messages, string $model, int $maxTokens = 4096, bool $jsonMode = false): array
+    {
+        // Call Perplexity API and return OpenAI-compatible format:
+        return ['choices' => [['message' => ['content' => $text]]]];
+    }
+
+    public function generateImage(string $prompt, string $model, string $size, string $quality): ?string
+    {
+        return null; // Not supported
+    }
+
+    public function supportsImageGeneration(): bool { return false; }
+    public function name(): string { return 'perplexity'; }
+}
+```
+
+Register it:
+
+```php
+use Bader\ContentPublisher\Services\Ai\AiProviderManager;
+
+app(AiProviderManager::class)->extend('perplexity', fn(array $config) => new PerplexityProvider($config));
+```
+
+Then set `AI_PROVIDER=perplexity` in your `.env` and add config under `scribe-ai.ai.providers.perplexity`.
+
+---
+
+## Events
+
+Every pipeline stage dispatches a Laravel event, letting you hook into the content lifecycle with standard event listeners.
+
+### Available events
+
+| Event | Fired when | Key properties |
+|-------|-----------|----------------|
+| `PipelineStarted` | Pipeline begins execution | `payload`, `runId` |
+| `PipelineCompleted` | Pipeline finishes successfully | `payload`, `runId` |
+| `PipelineFailed` | Pipeline fails or content is rejected | `payload`, `reason`, `stage`, `runId` |
+| `ContentScraped` | ScrapeStage fetches content | `payload`, `driver`, `contentLength` |
+| `ContentRewritten` | AiRewriteStage completes | `payload`, `title`, `categoryId` |
+| `ImageGenerated` | GenerateImageStage produces an image | `payload`, `imagePath` |
+| `ImageOptimized` | OptimizeImageStage converts/resizes | `payload`, `originalPath`, `optimizedPath` |
+| `ArticleCreated` | CreateArticleStage persists to DB | `payload`, `article` |
+| `ArticlePublished` | Each channel publish attempt | `payload`, `result`, `channel` |
+
+All events are in the `Bader\ContentPublisher\Events` namespace.
+
+### Listening to events
+
+Register listeners in your `EventServiceProvider` or use closures:
+
+```php
+use Bader\ContentPublisher\Events\ArticleCreated;
+use Bader\ContentPublisher\Events\PipelineFailed;
+use Bader\ContentPublisher\Events\ContentRewritten;
+
+// In EventServiceProvider::$listen
+protected $listen = [
+    ArticleCreated::class => [
+        SendSlackNotification::class,
+        UpdateSearchIndex::class,
+    ],
+    PipelineFailed::class => [
+        AlertOpsTeam::class,
+    ],
+];
+```
+
+Or listen inline:
+
+```php
+use Illuminate\Support\Facades\Event;
+use Bader\ContentPublisher\Events\ContentRewritten;
+
+Event::listen(ContentRewritten::class, function (ContentRewritten $event) {
+    logger()->info("Article rewritten: {$event->title}", [
+        'category' => $event->categoryId,
+        'url' => $event->payload->sourceUrl,
+    ]);
+});
 ```
 
 ---
@@ -551,8 +704,9 @@ When disabled, the `OptimizeImageStage` is silently skipped and the original ima
 | Class | Role |
 |-------|------|
 | `ContentSourceManager` | Resolves input drivers (web, rss, text, custom). Auto-detects or uses explicit override. |
+| `AiProviderManager` | Resolves AI backends (openai, claude, gemini, ollama, custom). Separate text & image providers. |
 | `ContentPayload` | Immutable DTO carrying state between stages. Supports `toSnapshot()` / `fromSnapshot()` for JSON serialisation. |
-| `ContentPipeline` | Runs stages in sequence, tracks each step in a `PipelineRun`, supports resume from failure. |
+| `ContentPipeline` | Runs stages in sequence, tracks each step in a `PipelineRun`, supports resume from failure. Dispatches `Pipeline*` events. |
 | `PipelineRun` | Eloquent model persisting run state, stage progress, and payload snapshots to `pipeline_runs`. |
 | `PublisherManager` | Resolves and dispatches to channel publish drivers. |
 | `PublishResult` | Per-channel outcome DTO, auto-persisted to `publish_logs`. |

@@ -2,19 +2,22 @@
 
 namespace Bader\ContentPublisher\Services\Ai;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Core wrapper around the OpenAI API with model fallback support.
+ * Core AI service with provider delegation and model fallback.
  *
- * All AI services in the package delegate to this class for
- * the actual API calls. It handles retries, model fallback, and
- * response normalization.
+ * All AI services in the package delegate to this class for the actual
+ * API calls. It resolves the active AiProvider via AiProviderManager
+ * and handles retries, model fallback, and response normalization.
  */
 class AiService
 {
+    public function __construct(
+        protected AiProviderManager $providerManager,
+    ) {}
+
     /**
      * Send a chat completion request with automatic fallback.
      *
@@ -23,24 +26,26 @@ class AiService
      */
     public function chat(array $messages, ?string $model = null, int $maxTokens = 0, bool $jsonMode = false): array
     {
+        $provider = $this->providerManager->provider();
         $primaryModel = $model ?? config('scribe-ai.ai.content_model', 'gpt-4o-mini');
         $fallbackModel = config('scribe-ai.ai.fallback_model', 'gpt-4o-mini');
         $maxTokens = $maxTokens ?: (int) config('scribe-ai.ai.max_tokens', 2000);
 
         try {
-            return $this->sendChatRequest($messages, $primaryModel, $maxTokens, $jsonMode);
+            return $this->sendChatRequest($provider, $messages, $primaryModel, $maxTokens, $jsonMode);
         } catch (RuntimeException $e) {
             if ($primaryModel === $fallbackModel) {
                 throw $e;
             }
 
             Log::warning('AI primary model failed, falling back', [
+                'provider' => $provider->name(),
                 'primary' => $primaryModel,
                 'fallback' => $fallbackModel,
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->sendChatRequest($messages, $fallbackModel, $maxTokens, $jsonMode);
+            return $this->sendChatRequest($provider, $messages, $fallbackModel, $maxTokens, $jsonMode);
         }
     }
 
@@ -80,25 +85,26 @@ class AiService
     }
 
     /**
+     * Get the underlying provider manager (for image generation, custom providers, etc.).
+     */
+    public function providerManager(): AiProviderManager
+    {
+        return $this->providerManager;
+    }
+
+    /**
      * @return array<string, mixed>
      */
-    protected function sendChatRequest(array $messages, string $model, int $maxTokens, bool $jsonMode): array
-    {
-        $tokenParam = $this->maxTokensParam($model);
-
-        $payload = [
-            'model' => $model,
-            'messages' => $messages,
-            $tokenParam => $maxTokens,
-        ];
-
-        if ($jsonMode) {
-            $payload['response_format'] = ['type' => 'json_object'];
-        }
-
+    protected function sendChatRequest(
+        \Bader\ContentPublisher\Contracts\AiProvider $provider,
+        array $messages,
+        string $model,
+        int $maxTokens,
+        bool $jsonMode,
+    ): array {
         Log::info('AiService: sending chat request', [
+            'provider' => $provider->name(),
             'model' => $model,
-            'token_param' => $tokenParam,
             'max_tokens' => $maxTokens,
             'json_mode' => $jsonMode,
             'messages_count' => count($messages),
@@ -106,31 +112,13 @@ class AiService
             'user_prompt_length' => mb_strlen($messages[1]['content'] ?? ''),
         ]);
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('scribe-ai.ai.api_key'),
-            'Content-Type' => 'application/json',
-        ])
-            ->timeout(180)
-            ->post('https://api.openai.com/v1/chat/completions', $payload);
-
-        Log::info('AiService: response received', [
-            'model' => $model,
-            'status' => $response->status(),
-            'body_length' => mb_strlen($response->body()),
-        ]);
-
-        if ($response->failed()) {
-            throw new RuntimeException(
-                "OpenAI API error [{$response->status()}]: " . $response->body()
-            );
-        }
-
-        $json = $response->json();
+        $json = $provider->chat($messages, $model, $maxTokens, $jsonMode);
 
         $finishReason = $json['choices'][0]['finish_reason'] ?? 'unknown';
         $usage = $json['usage'] ?? [];
 
-        Log::info('AiService: completion details', [
+        Log::info('AiService: response received', [
+            'provider' => $provider->name(),
             'model' => $model,
             'finish_reason' => $finishReason,
             'prompt_tokens' => $usage['prompt_tokens'] ?? null,
@@ -146,19 +134,6 @@ class AiService
         }
 
         return $json;
-    }
-
-    /**
-     * Determine the correct max-tokens parameter name for the given model.
-     *
-     * Only truly new model families (gpt-5, o1, o3) require 'max_completion_tokens'.
-     * The gpt-4o family supports both, so we keep using 'max_tokens' for compatibility.
-     */
-    protected function maxTokensParam(string $model): string
-    {
-        $requiresNew = preg_match('/^(gpt-5|o1|o3)/i', $model);
-
-        return $requiresNew ? 'max_completion_tokens' : 'max_tokens';
     }
 
     /**

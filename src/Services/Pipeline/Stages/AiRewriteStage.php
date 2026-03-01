@@ -4,6 +4,7 @@ namespace Bader\ContentPublisher\Services\Pipeline\Stages;
 
 use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Events\ContentRewritten;
 use Bader\ContentPublisher\Models\Category;
 use Bader\ContentPublisher\Services\Ai\AiService;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
@@ -78,7 +79,7 @@ class AiRewriteStage implements Pipe
 
         $pipeline->reportProgress('AI Rewrite', 'completed — "' . ($result['title'] ?? 'untitled') . '"');
 
-        return $next($payload->with([
+        $newPayload = $payload->with([
             'title' => $result['title'] ?? $payload->title,
             'content' => $result['content'] ?? $content,
             'description' => $result['description'] ?? null,
@@ -88,7 +89,11 @@ class AiRewriteStage implements Pipe
             'categoryId' => $categoryId,
             'tags' => $result['tags'] ?? [],
             'slug' => Str::slug($result['title'] ?? $payload->title ?? ''),
-        ]));
+        ]);
+
+        event(new ContentRewritten($newPayload, $newPayload->title ?? 'untitled', $categoryId));
+
+        return $next($newPayload);
     }
 
     /**

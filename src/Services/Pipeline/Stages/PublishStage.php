@@ -4,6 +4,7 @@ namespace Bader\ContentPublisher\Services\Pipeline\Stages;
 
 use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Events\ArticlePublished;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Bader\ContentPublisher\Services\Publishing\PublisherManager;
 use Closure;
@@ -49,6 +50,10 @@ class PublishStage implements Pipe
             ]);
 
             $pipeline->reportProgress('Publish', 'completed — ' . $successCount . '/' . count($results) . ' channels succeeded');
+
+            foreach ($results as $channel => $result) {
+                event(new ArticlePublished($payload, $result, $channel));
+            }
 
             return $next($payload->with(['publishResults' => $results]));
         } catch (\Throwable $e) {

@@ -90,6 +90,33 @@ return [
     */
 
     'ai' => [
+        /*
+        |----------------------------------------------------------------------
+        | Default AI Provider
+        |----------------------------------------------------------------------
+        |
+        | The provider used for text/chat completions. Built-in: openai, claude,
+        | gemini, ollama. Register custom providers via AiProviderManager::extend().
+        |
+        */
+        'provider' => env('AI_PROVIDER', 'openai'),
+
+        /*
+        |----------------------------------------------------------------------
+        | Image Generation Provider
+        |----------------------------------------------------------------------
+        |
+        | Provider used specifically for image generation. Falls back to the
+        | default provider above, then to openai. Set to null for auto-detect.
+        |
+        */
+        'image_provider' => env('AI_IMAGE_PROVIDER'),
+
+        /*
+        |----------------------------------------------------------------------
+        | Legacy / Shared Settings
+        |----------------------------------------------------------------------
+        */
         'api_key' => env('OPENAI_API_KEY'),
         'content_model' => env('OPENAI_CONTENT_MODEL', 'gpt-4o-mini'),
         'fallback_model' => env('OPENAI_FALLBACK_MODEL', 'gpt-4o-mini'),
@@ -104,6 +131,44 @@ return [
         | Examples: 'English', 'Arabic', 'French', 'Spanish', etc.
         */
         'output_language' => env('AI_OUTPUT_LANGUAGE', 'English'),
+
+        /*
+        |----------------------------------------------------------------------
+        | Per-Provider Configuration
+        |----------------------------------------------------------------------
+        |
+        | Each provider reads its own config block below. The top-level api_key
+        | is automatically merged into the openai provider for backward compat.
+        |
+        */
+        'providers' => [
+            'openai' => [
+                'api_key' => env('OPENAI_API_KEY'),
+                'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+            ],
+
+            'claude' => [
+                'api_key' => env('ANTHROPIC_API_KEY'),
+                'base_url' => env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com/v1'),
+                'api_version' => env('ANTHROPIC_API_VERSION', '2023-06-01'),
+            ],
+
+            'gemini' => [
+                'api_key' => env('GEMINI_API_KEY'),
+                'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
+            ],
+
+            'ollama' => [
+                'host' => env('OLLAMA_HOST', 'http://localhost:11434'),
+            ],
+
+            'piapi' => [
+                'api_key' => env('PIAPI_API_KEY'),
+                'base_url' => env('PIAPI_BASE_URL', 'https://api.piapi.ai'),
+                'poll_max_attempts' => (int) env('PIAPI_POLL_MAX_ATTEMPTS', 30),
+                'poll_interval_ms' => (int) env('PIAPI_POLL_INTERVAL_MS', 3000),
+            ],
+        ],
     ],
 
     /*

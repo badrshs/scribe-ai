@@ -4,6 +4,9 @@ namespace Bader\ContentPublisher\Services\Pipeline;
 
 use Bader\ContentPublisher\Data\ContentPayload;
 use Bader\ContentPublisher\Enums\PipelineRunStatus;
+use Bader\ContentPublisher\Events\PipelineCompleted;
+use Bader\ContentPublisher\Events\PipelineFailed;
+use Bader\ContentPublisher\Events\PipelineStarted;
 use Bader\ContentPublisher\Models\PipelineRun;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Log;
@@ -147,6 +150,8 @@ class ContentPipeline
     {
         $this->reportProgress('Pipeline', 'started');
 
+        event(new PipelineStarted($payload, $run?->id));
+
         Log::info('Content pipeline started', [
             'run_id' => $run?->id,
             'source_url' => $payload->sourceUrl,
@@ -172,6 +177,8 @@ class ContentPipeline
                 ]);
 
                 $run?->markFailed($stageName, $e->getMessage());
+
+                event(new PipelineFailed($current, $e->getMessage(), $stageName, $run?->id));
 
                 // Snapshot at the state *before* the failed stage so resume replays it
                 $run?->markStageCompleted($i, $current->toSnapshot());
@@ -203,6 +210,9 @@ class ContentPipeline
 
                 $run?->markRejected($current->rejectionReason ?? 'unknown');
                 $this->reportProgress('Pipeline', 'completed');
+
+                event(new PipelineFailed($current, $current->rejectionReason ?? 'rejected', $stageName, $run?->id));
+
                 $this->cleanup();
 
                 return $current;
@@ -222,6 +232,8 @@ class ContentPipeline
                 'source_url' => $payload->sourceUrl,
                 'reason' => $current->rejectionReason,
             ]);
+
+            event(new PipelineFailed($current, $current->rejectionReason ?? 'rejected', null, $run?->id));
         } else {
             $run?->markCompleted($current->article?->id);
             Log::info('Content pipeline completed', [
@@ -229,6 +241,8 @@ class ContentPipeline
                 'source_url' => $payload->sourceUrl,
                 'article_id' => $current->article?->id,
             ]);
+
+            event(new PipelineCompleted($current, $run?->id));
         }
 
         $this->reportProgress('Pipeline', 'completed');

@@ -5,6 +5,7 @@ namespace Bader\ContentPublisher\Services\Pipeline\Stages;
 use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
 use Bader\ContentPublisher\Enums\ArticleStatus;
+use Bader\ContentPublisher\Events\ArticleCreated;
 use Bader\ContentPublisher\Models\Article;
 use Bader\ContentPublisher\Models\Tag;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
@@ -59,7 +60,11 @@ class CreateArticleStage implements Pipe
 
         $pipeline->reportProgress('Create Article', 'completed — ID #' . $article->id);
 
-        return $next($payload->with(['article' => $article]));
+        $newPayload = $payload->with(['article' => $article]);
+
+        event(new ArticleCreated($newPayload, $article));
+
+        return $next($newPayload);
     }
 
     /**

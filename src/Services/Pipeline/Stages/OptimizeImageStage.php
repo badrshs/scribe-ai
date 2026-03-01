@@ -4,6 +4,7 @@ namespace Bader\ContentPublisher\Services\Pipeline\Stages;
 
 use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Events\ImageOptimized;
 use Bader\ContentPublisher\Services\ImageOptimizer;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Closure;
@@ -41,13 +42,19 @@ class OptimizeImageStage implements Pipe
         try {
             $optimizedPath = $this->optimizer->optimizeExisting($payload->imagePath);
 
+            $originalPath = $payload->imagePath;
+
             Log::info('OptimizeImageStage: image optimized', [
-                'original' => $payload->imagePath,
+                'original' => $originalPath,
                 'optimized' => $optimizedPath,
             ]);
             $pipeline->reportProgress('Optimise Image', 'completed');
 
-            return $next($payload->with(['imagePath' => $optimizedPath]));
+            $newPayload = $payload->with(['imagePath' => $optimizedPath]);
+
+            event(new ImageOptimized($newPayload, $originalPath, $optimizedPath));
+
+            return $next($newPayload);
         } catch (\Throwable $e) {
             Log::warning('OptimizeImageStage: optimization failed', [
                 'error' => $e->getMessage(),

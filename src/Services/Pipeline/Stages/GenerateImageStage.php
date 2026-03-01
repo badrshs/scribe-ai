@@ -4,6 +4,7 @@ namespace Bader\ContentPublisher\Services\Pipeline\Stages;
 
 use Bader\ContentPublisher\Contracts\Pipe;
 use Bader\ContentPublisher\Data\ContentPayload;
+use Bader\ContentPublisher\Events\ImageGenerated;
 use Bader\ContentPublisher\Services\Ai\ImageGenerator;
 use Bader\ContentPublisher\Services\Pipeline\ContentPipeline;
 use Closure;
@@ -46,7 +47,11 @@ class GenerateImageStage implements Pipe
             Log::info('GenerateImageStage: image generated', ['path' => $imagePath]);
             $pipeline->reportProgress('Generate Image', 'completed');
 
-            return $next($payload->with(['imagePath' => $imagePath]));
+            $newPayload = $payload->with(['imagePath' => $imagePath]);
+
+            event(new ImageGenerated($newPayload, $imagePath));
+
+            return $next($newPayload);
         } catch (\Throwable $e) {
             Log::warning('GenerateImageStage: image generation failed', [
                 'error' => $e->getMessage(),
