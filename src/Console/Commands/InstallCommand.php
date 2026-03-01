@@ -172,7 +172,7 @@ class InstallCommand extends Command
         $channels = $this->choice(
             'Which channels do you want to publish to? (comma-separated)',
             $available,
-            'log',
+            0,
             null,
             true,
         );
