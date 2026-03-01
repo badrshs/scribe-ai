@@ -56,16 +56,16 @@ class PiApiProvider implements AiProvider
 
         // Create the generation task
         $response = Http::withHeaders([
-            'x-api-key' => $this->apiKey,
+            'X-API-Key' => $this->apiKey,
             'Content-Type' => 'application/json',
-        ])->post("{$this->baseUrl}/api/flux/v1/run", [
-            'model' => $model ?: 'flux-1',
+        ])->post("{$this->baseUrl}/api/v1/task", [
+            'model' => $model ?: 'Qubico/flux1-schnell',
             'task_type' => 'txt2img',
             'input' => [
                 'prompt' => $prompt,
-                'width' => $width,
-                'height' => $height,
             ],
+            'width' => $width,
+            'height' => $height,
         ]);
 
         if ($response->failed()) {
@@ -107,8 +107,8 @@ class PiApiProvider implements AiProvider
             usleep($intervalMs * 1000);
 
             $response = Http::withHeaders([
-                'x-api-key' => $this->apiKey,
-            ])->get("{$this->baseUrl}/api/flux/v1/task/{$taskId}");
+                'X-API-Key' => $this->apiKey,
+            ])->get("{$this->baseUrl}/api/v1/task/{$taskId}");
 
             if ($response->failed()) {
                 continue;
@@ -118,9 +118,15 @@ class PiApiProvider implements AiProvider
             $status = $data['data']['status'] ?? '';
 
             if ($status === 'completed') {
-                $imageUrl = $data['data']['output']['image_url']
-                    ?? $data['data']['output']['images'][0]['url']
-                    ?? null;
+                $output = $data['data']['output'] ?? null;
+
+                $imageUrl = null;
+
+                if (is_array($output)) {
+                    $imageUrl = $output['image_url'] ?? $output[0]['url'] ?? null;
+                } elseif (is_string($output)) {
+                    $imageUrl = $output;
+                }
 
                 if (! $imageUrl) {
                     throw new RuntimeException('PiAPI completed but returned no image URL');

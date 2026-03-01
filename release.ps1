@@ -11,7 +11,7 @@ function Write-Banner($text) {
     Write-Host "$line`n" -ForegroundColor Cyan
 }
 
-function Get-NextVersion([string]$lastTag) {
+function Get-NextVersion([string]$lastTag, [string]$bumpType) {
     if (-not $lastTag -or $lastTag -match "fatal") {
         return "v1.0.0"
     }
@@ -23,7 +23,12 @@ function Get-NextVersion([string]$lastTag) {
     $minor = if ($parts.Count -gt 1) { [int]$parts[1] } else { 0 }
     $patch = if ($parts.Count -gt 2) { [int]$parts[2] } else { 0 }
 
-    $patch++
+    switch ($bumpType) {
+        "1" { $minor++; $patch = 0 }          # minor
+        "2" { $major++; $minor = 0; $patch = 0 }  # major
+        default { $patch++ }                       # patch
+    }
+
     return "v$major.$minor.$patch"
 }
 
@@ -50,7 +55,6 @@ Write-Banner "Content Publisher Release"
 # -- Detect last tag --------------------------------
 $lastTag = $null
 try { $lastTag = (git describe --tags --abbrev=0 2>&1) | Where-Object { $_ -notmatch 'fatal' } | Select-Object -First 1 } catch {}
-$nextTag = Get-NextVersion $lastTag
 
 Write-Host "  Remote:        " -NoNewline; Write-Host $remote -ForegroundColor Cyan
 Write-Host "  Branch:        " -NoNewline; Write-Host $Branch -ForegroundColor Cyan
@@ -59,34 +63,41 @@ if ($lastTag) {
 } else {
     Write-Host "  No previous tags found." -ForegroundColor DarkGray
 }
-Write-Host "  Suggested next:" -NoNewline; Write-Host " $nextTag" -ForegroundColor Green
 Write-Host ""
 
-# -- Stage 1: Commit --------------------------------
+# -- Choose bump type --------------------------------
+Write-Banner "Version Bump"
+
+Write-Host "  [Enter] Patch   [1] Minor   [2] Major" -ForegroundColor DarkGray
+$bumpType = Read-Host "  Release type"
+
+$nextTag = Get-NextVersion $lastTag $bumpType
+Write-Host "  Next version:  " -NoNewline; Write-Host $nextTag -ForegroundColor Green
+Write-Host ""
+
+# -- Stage 1: Commit if needed ----------------------
 Write-Banner "Stage 1: Commit Changes"
 
 $status = git status --short
 if (-not $status) {
-    Write-Host "  Working tree clean -- nothing to commit." -ForegroundColor DarkGray
-    $skipCommit = $true
+    Write-Host "  Working tree clean -- skipping commit." -ForegroundColor DarkGray
 } else {
     Write-Host "  Changed files:" -ForegroundColor DarkGray
     $status | ForEach-Object { Write-Host "    $_" -ForegroundColor Gray }
     Write-Host ""
 
-    $commitMsg = Read-Host "  Commit message"
-    if ([string]::IsNullOrWhiteSpace($commitMsg)) {
-        Write-Host "  Aborted: commit message cannot be empty." -ForegroundColor Red
-        exit 1
+    $commitMsg = Read-Host "  Commit message (Enter to skip)"
+    if (-not [string]::IsNullOrWhiteSpace($commitMsg)) {
+        git add .
+        git commit -m $commitMsg
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  Commit failed." -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "  Committed." -ForegroundColor Green
+    } else {
+        Write-Host "  Skipping commit." -ForegroundColor DarkGray
     }
-
-    git add .
-    git commit -m $commitMsg
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "  Commit failed." -ForegroundColor Red
-        exit 1
-    }
-    Write-Host "  Committed." -ForegroundColor Green
 }
 
 # -- Stage 2: Tag -----------------------------------

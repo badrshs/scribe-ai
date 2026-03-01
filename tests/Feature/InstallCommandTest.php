@@ -2,10 +2,38 @@
 
 namespace Badr\ScribeAi\Tests\Feature;
 
+use Badr\ScribeAi\Console\Commands\InstallCommand;
 use Badr\ScribeAi\Tests\TestCase;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\Console\Tester\CommandTester;
 
+/**
+ * Testable subclass that replaces secret() with ask() so that
+ * CommandTester can feed answers via an in-memory stream.
+ *
+ * On Windows, Symfony's QuestionHelper::getHiddenResponse() shells
+ * out to hiddeninput.exe which blocks when there is no real console.
+ * This subclass side-steps that while still exercising every other
+ * part of the Symfony rendering pipeline (including writePrompt).
+ */
+class TestableInstallCommand extends InstallCommand
+{
+    public function secret($question, $fallback = true)
+    {
+        return $this->ask($question);
+    }
+}
+
+/**
+ * End-to-end tests for the scribe:install command.
+ *
+ * Uses Symfony's CommandTester instead of Laravel's expectsChoice /
+ * expectsQuestion mocks.  This exercises the REAL Symfony console
+ * rendering pipeline (writePrompt → doAsk → validateAttempts) and
+ * catches bugs that mocks silently skip — such as the multiselect
+ * ChoiceQuestion default-index rendering bug in writePrompt().
+ */
 class InstallCommandTest extends TestCase
 {
     protected string $envPath;
@@ -14,16 +42,17 @@ class InstallCommandTest extends TestCase
     {
         parent::setUp();
 
-        // Use a temp .env file for testing
-        $this->envPath = $this->app->basePath('.env');
+        // Register the testable subclass so CommandTester uses it
+        $this->app->singleton(TestableInstallCommand::class);
+        $this->app->make(\Illuminate\Contracts\Console\Kernel::class)
+            ->registerCommand($this->app->make(TestableInstallCommand::class));
 
-        // Create a minimal .env for the wizard to write into
+        $this->envPath = $this->app->basePath('.env');
         File::put($this->envPath, "APP_NAME=TestApp\nAPP_KEY=base64:test\n");
     }
 
     protected function tearDown(): void
     {
-        // Clean up the temp .env
         if (File::exists($this->envPath)) {
             File::delete($this->envPath);
         }
@@ -31,159 +60,231 @@ class InstallCommandTest extends TestCase
         parent::tearDown();
     }
 
-    // ──────────────────────────────────────────────────────────
-    //  Basic execution
-    // ──────────────────────────────────────────────────────────
-
-    #[Test]
-    public function install_command_exists_and_is_registered(): void
+    /**
+     * Run install with piped stdin inputs through the real Symfony renderer.
+     *
+     * @return array{0: int, 1: string, 2: string|null}  [exitCode, display, envContent]
+     */
+    protected function runInstall(array $inputs): array
     {
-        $commands = \Artisan::all();
-        $this->assertArrayHasKey('scribe:install', $commands);
+        $command = \Artisan::all()['scribe:install'];
+        $tester  = new CommandTester($command);
+        $tester->setInputs($inputs);
+
+        $exitCode = $tester->execute(['--force' => true]);
+        $display  = $tester->getDisplay();
+        $env      = File::exists($this->envPath) ? File::get($this->envPath) : null;
+
+        return [$exitCode, $display, $env];
     }
 
-    #[Test]
-    public function install_command_runs_with_defaults_interactively(): void
+    /**
+     * Assert the install ran cleanly — no Symfony rendering errors, no [ERROR] blocks.
+     */
+    protected function assertCleanInstall(int $exitCode, string $display): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-default-test')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
-    }
-
-    // ──────────────────────────────────────────────────────────
-    //  OpenAI provider flow
-    // ──────────────────────────────────────────────────────────
-
-    #[Test]
-    public function install_configures_openai_provider(): void
-    {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-key-123')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
-
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_PROVIDER=openai', $envContent);
-        $this->assertStringContainsString('OPENAI_API_KEY=sk-test-key-123', $envContent);
-        $this->assertStringContainsString('OPENAI_CONTENT_MODEL=gpt-4o-mini', $envContent);
-        $this->assertStringContainsString('AI_OUTPUT_LANGUAGE=English', $envContent);
-        $this->assertStringContainsString('PUBLISHER_CHANNELS=log', $envContent);
-        $this->assertStringContainsString('PUBLISHER_DEFAULT_CHANNEL=log', $envContent);
-        $this->assertStringContainsString('PIPELINE_TRACK_RUNS=true', $envContent);
-        $this->assertStringContainsString('IMAGE_OPTIMIZE=true', $envContent);
+        $this->assertStringNotContainsString(
+            'Undefined array key',
+            $display,
+            'Symfony rendering error detected — likely a ChoiceQuestion default bug',
+        );
+        $this->assertStringNotContainsString('[ERROR]', $display, 'Error block found in command output');
+        $this->assertStringContainsString('installed successfully', $display, 'Success message missing');
+        $this->assertEquals(0, $exitCode, "Non-zero exit code. Output:\n{$display}");
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Claude provider flow
+    //  Registration
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_claude_provider(): void
+    public function install_command_is_registered(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'claude', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('Anthropic API key', 'sk-ant-test-123')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'claude-sonnet-4-20250514')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
-
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_PROVIDER=claude', $envContent);
-        $this->assertStringContainsString('ANTHROPIC_API_KEY=sk-ant-test-123', $envContent);
+        $this->assertArrayHasKey('scribe:install', \Artisan::all());
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Gemini provider flow
+    //  OpenAI + default log channel
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_gemini_provider(): void
+    public function install_openai_with_log_channel(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'gemini', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('Google Gemini API key', 'AIza-test-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gemini-2.0-flash')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',            // provider: openai
+            'sk-test-key',  // openai api key
+            'no',           // separate image provider
+            '',             // content model (accept default)
+            '',             // output language (accept default)
+            '0',            // channel: log
+            'yes',          // pipeline run tracking
+            'yes',          // image optimisation
+            'no',           // telegram approval
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_PROVIDER=gemini', $envContent);
-        $this->assertStringContainsString('GEMINI_API_KEY=AIza-test-key', $envContent);
+        $this->assertCleanInstall($exit, $output);
+
+        $this->assertStringContainsString('AI_PROVIDER=openai', $env);
+        $this->assertStringContainsString('OPENAI_API_KEY=sk-test-key', $env);
+        $this->assertStringContainsString('OPENAI_CONTENT_MODEL=gpt-4o-mini', $env);
+        $this->assertStringContainsString('AI_OUTPUT_LANGUAGE=English', $env);
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=log', $env);
+        $this->assertStringContainsString('PUBLISHER_DEFAULT_CHANNEL=log', $env);
+        $this->assertStringContainsString('PIPELINE_TRACK_RUNS=true', $env);
+        $this->assertStringContainsString('IMAGE_OPTIMIZE=true', $env);
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Ollama provider flow
+    //  Claude
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_ollama_provider(): void
+    public function install_claude_provider(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'ollama', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('Ollama host URL', 'http://localhost:11434')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'llama3.1')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '1',              // provider: claude
+            'sk-ant-key',     // anthropic api key
+            'no',
+            '',
+            '',
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_PROVIDER=ollama', $envContent);
-        $this->assertStringContainsString('OLLAMA_HOST=http://localhost:11434', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_PROVIDER=claude', $env);
+        $this->assertStringContainsString('ANTHROPIC_API_KEY=sk-ant-key', $env);
+        $this->assertStringContainsString('OPENAI_CONTENT_MODEL=claude-sonnet-4-20250514', $env);
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Image provider - PiAPI
+    //  Gemini
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_separate_piapi_image_provider(): void
+    public function install_gemini_provider(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-123')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'yes')
-            ->expectsChoice('Image generation provider', 'piapi', ['openai', 'gemini', 'piapi'])
-            ->expectsQuestion('PiAPI API key', 'piapi-test-key')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '2',             // provider: gemini
+            'AIza-key',      // gemini api key
+            'no',
+            '',
+            '',
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_IMAGE_PROVIDER=piapi', $envContent);
-        $this->assertStringContainsString('PIAPI_API_KEY=piapi-test-key', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_PROVIDER=gemini', $env);
+        $this->assertStringContainsString('GEMINI_API_KEY=AIza-key', $env);
+        $this->assertStringContainsString('OPENAI_CONTENT_MODEL=gemini-2.0-flash', $env);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Ollama
+    // ──────────────────────────────────────────────────────────
+
+    #[Test]
+    public function install_ollama_provider(): void
+    {
+        [$exit, $output, $env] = $this->runInstall([
+            '3',    // provider: ollama
+            '',     // host URL (accept default)
+            'no',
+            '',
+            '',
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
+
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_PROVIDER=ollama', $env);
+        $this->assertStringContainsString('OLLAMA_HOST=http://localhost:11434', $env);
+        $this->assertStringContainsString('OPENAI_CONTENT_MODEL=llama3.1', $env);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Separate PiAPI image provider
+    // ──────────────────────────────────────────────────────────
+
+    #[Test]
+    public function install_piapi_image_provider(): void
+    {
+        [$exit, $output, $env] = $this->runInstall([
+            '0',            // provider: openai
+            'sk-key',       // openai key
+            'yes',          // separate image provider
+            '2',            // image provider: piapi
+            'piapi-key',    // piapi key
+            '',             // model
+            '',             // language
+            '0',            // channel: log
+            'yes',
+            'yes',
+            'no',
+        ]);
+
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_IMAGE_PROVIDER=piapi', $env);
+        $this->assertStringContainsString('PIAPI_API_KEY=piapi-key', $env);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Different image provider triggers its own credentials
+    // ──────────────────────────────────────────────────────────
+
+    #[Test]
+    public function install_different_image_provider_prompts_credentials(): void
+    {
+        [$exit, $output, $env] = $this->runInstall([
+            '1',                    // provider: claude
+            'sk-ant-key',           // anthropic key
+            'yes',                  // separate image provider
+            '0',                    // image provider: openai
+            'sk-openai-for-images', // openai key (for images)
+            '',                     // model
+            '',                     // language
+            '0',                    // channel: log
+            'yes',
+            'yes',
+            'no',
+        ]);
+
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_PROVIDER=claude', $env);
+        $this->assertStringContainsString('ANTHROPIC_API_KEY=sk-ant-key', $env);
+        $this->assertStringContainsString('AI_IMAGE_PROVIDER=openai', $env);
+        $this->assertStringContainsString('OPENAI_API_KEY=sk-openai-for-images', $env);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Same image provider as text — no extra config prompt
+    // ──────────────────────────────────────────────────────────
+
+    #[Test]
+    public function install_same_image_provider_skips_duplicate_config(): void
+    {
+        [$exit, $output, $env] = $this->runInstall([
+            '0',        // provider: openai
+            'sk-key',   // openai key
+            'yes',      // separate image provider
+            '0',        // image provider: openai (same)
+            '',         // model
+            '',         // language
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
+
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_IMAGE_PROVIDER=openai', $env);
     }
 
     // ──────────────────────────────────────────────────────────
@@ -191,26 +292,26 @@ class InstallCommandTest extends TestCase
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_telegram_channel(): void
+    public function install_telegram_channel(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['telegram'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsQuestion('Telegram bot token', 'bot123:ABC')
-            ->expectsQuestion('Telegram chat/channel ID', '-1001234567890')
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '1',                  // channel: telegram
+            'bot123:TOKEN',       // bot token
+            '-1001234567890',     // chat id
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('PUBLISHER_CHANNELS=telegram', $envContent);
-        $this->assertStringContainsString('TELEGRAM_BOT_TOKEN=bot123:ABC', $envContent);
-        $this->assertStringContainsString('TELEGRAM_CHAT_ID=-1001234567890', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=telegram', $env);
+        $this->assertStringContainsString('TELEGRAM_BOT_TOKEN=bot123:TOKEN', $env);
+        $this->assertStringContainsString('TELEGRAM_CHAT_ID=-1001234567890', $env);
     }
 
     // ──────────────────────────────────────────────────────────
@@ -218,25 +319,26 @@ class InstallCommandTest extends TestCase
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_facebook_channel(): void
+    public function install_facebook_channel(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['facebook'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsQuestion('Facebook Page ID', '123456789')
-            ->expectsQuestion('Facebook Page Access Token', 'EAA-test-token')
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '2',             // channel: facebook
+            '123456789',     // page id
+            'EAA-token',     // page access token
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('FACEBOOK_PAGE_ID=123456789', $envContent);
-        $this->assertStringContainsString('FACEBOOK_PAGE_ACCESS_TOKEN=EAA-test-token', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=facebook', $env);
+        $this->assertStringContainsString('FACEBOOK_PAGE_ID=123456789', $env);
+        $this->assertStringContainsString('FACEBOOK_PAGE_ACCESS_TOKEN=EAA-token', $env);
     }
 
     // ──────────────────────────────────────────────────────────
@@ -244,25 +346,26 @@ class InstallCommandTest extends TestCase
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_blogger_channel(): void
+    public function install_blogger_channel(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['blogger'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsQuestion('Blogger Blog ID', 'blog-12345')
-            ->expectsQuestion('Blogger API key', 'AIza-blogger-key')
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '3',              // channel: blogger
+            'blog-12345',     // blog id
+            'AIza-blog-key',  // api key
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('BLOGGER_BLOG_ID=blog-12345', $envContent);
-        $this->assertStringContainsString('BLOGGER_API_KEY=AIza-blogger-key', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=blogger', $env);
+        $this->assertStringContainsString('BLOGGER_BLOG_ID=blog-12345', $env);
+        $this->assertStringContainsString('BLOGGER_API_KEY=AIza-blog-key', $env);
     }
 
     // ──────────────────────────────────────────────────────────
@@ -270,27 +373,28 @@ class InstallCommandTest extends TestCase
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_wordpress_channel(): void
+    public function install_wordpress_channel(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['wordpress'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsQuestion('WordPress site URL (e.g. https://myblog.com)', 'https://myblog.com')
-            ->expectsQuestion('WordPress username', 'admin')
-            ->expectsQuestion('WordPress application password', 'wp-app-pass')
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '4',                    // channel: wordpress
+            'https://myblog.com',   // wp url
+            'admin',                // username
+            'wp-app-pass',          // password
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('WORDPRESS_URL=https://myblog.com', $envContent);
-        $this->assertStringContainsString('WORDPRESS_USERNAME=admin', $envContent);
-        $this->assertStringContainsString('WORDPRESS_PASSWORD=wp-app-pass', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=wordpress', $env);
+        $this->assertStringContainsString('WORDPRESS_URL=https://myblog.com', $env);
+        $this->assertStringContainsString('WORDPRESS_USERNAME=admin', $env);
+        $this->assertStringContainsString('WORDPRESS_PASSWORD=wp-app-pass', $env);
     }
 
     // ──────────────────────────────────────────────────────────
@@ -298,129 +402,237 @@ class InstallCommandTest extends TestCase
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_configures_multiple_channels(): void
+    public function install_multiple_channels(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log', 'telegram'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsQuestion('Telegram bot token', 'bot:TOKEN')
-            ->expectsQuestion('Telegram chat/channel ID', '-100123')
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '0,1',            // channels: log + telegram
+            'bot:TOKEN',      // telegram bot token
+            '-100123',        // telegram chat id
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('PUBLISHER_CHANNELS=log,telegram', $envContent);
-        $this->assertStringContainsString('PUBLISHER_DEFAULT_CHANNEL=log', $envContent);
-        $this->assertStringContainsString('TELEGRAM_BOT_TOKEN=bot:TOKEN', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=log,telegram', $env);
+        $this->assertStringContainsString('PUBLISHER_DEFAULT_CHANNEL=log', $env);
+        $this->assertStringContainsString('TELEGRAM_BOT_TOKEN=bot:TOKEN', $env);
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Pipeline settings — all disabled
+    //  All channels — comprehensive end-to-end
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_can_disable_pipeline_features(): void
+    public function install_all_channels(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'no')
-            ->expectsConfirmation('Enable image optimization?', 'no')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-full',
+            'yes',             // separate image provider
+            '2',               // piapi
+            'piapi-key',
+            '',
+            '',
+            '0,1,2,3,4',      // all channels
+            'bot:T',           // telegram
+            '-100',
+            'fb-id',           // facebook
+            'fb-token',
+            'blog-id',         // blogger
+            'blog-key',
+            'https://wp.test', // wordpress
+            'admin',
+            'wp-pass',
+            'yes',
+            'yes',
+            'yes',             // telegram approval
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('PIPELINE_TRACK_RUNS=false', $envContent);
-        $this->assertStringContainsString('IMAGE_OPTIMIZE=false', $envContent);
+        $this->assertCleanInstall($exit, $output);
+
+        // Providers
+        $this->assertStringContainsString('AI_PROVIDER=openai', $env);
+        $this->assertStringContainsString('OPENAI_API_KEY=sk-full', $env);
+        $this->assertStringContainsString('AI_IMAGE_PROVIDER=piapi', $env);
+        $this->assertStringContainsString('PIAPI_API_KEY=piapi-key', $env);
+
+        // Channels
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=log,telegram,facebook,blogger,wordpress', $env);
+        $this->assertStringContainsString('TELEGRAM_BOT_TOKEN=bot:T', $env);
+        $this->assertStringContainsString('TELEGRAM_CHAT_ID=-100', $env);
+        $this->assertStringContainsString('FACEBOOK_PAGE_ID=fb-id', $env);
+        $this->assertStringContainsString('BLOGGER_BLOG_ID=blog-id', $env);
+        $this->assertStringContainsString('WORDPRESS_URL=https://wp.test', $env);
+        $this->assertStringContainsString('WORDPRESS_USERNAME=admin', $env);
+
+        // Pipeline
+        $this->assertStringContainsString('PIPELINE_TRACK_RUNS=true', $env);
+        $this->assertStringContainsString('IMAGE_OPTIMIZE=true', $env);
+        $this->assertStringContainsString('TELEGRAM_APPROVAL_ENABLED=true', $env);
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Telegram approval extension
+    //  Pipeline features all disabled
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_enables_telegram_approval(): void
+    public function install_disabled_pipeline_features(): void
     {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'yes')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '0',
+            'no',   // pipeline tracking OFF
+            'no',   // image optimisation OFF
+            'no',   // telegram approval OFF
+        ]);
 
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('TELEGRAM_APPROVAL_ENABLED=true', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('PIPELINE_TRACK_RUNS=false', $env);
+        $this->assertStringContainsString('IMAGE_OPTIMIZE=false', $env);
+        $this->assertStringNotContainsString('TELEGRAM_APPROVAL_ENABLED', $env);
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Env file doesn't exist
+    //  Telegram approval enabled
+    // ──────────────────────────────────────────────────────────
+
+    #[Test]
+    public function install_telegram_approval(): void
+    {
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '0',
+            'yes',
+            'yes',
+            'yes',  // telegram approval ON
+        ]);
+
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('TELEGRAM_APPROVAL_ENABLED=true', $env);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Missing .env file
     // ──────────────────────────────────────────────────────────
 
     #[Test]
     public function install_handles_missing_env_file(): void
     {
-        // Remove the .env file
         File::delete($this->envPath);
 
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        // .env should not exist (was deleted), wizard should warn and skip
-        $this->assertFalse(File::exists($this->envPath));
+        $this->assertCleanInstall($exit, $output);
+        $this->assertNull($env);
+        $this->assertStringContainsString('.env file not found', $output);
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Env file updates existing keys
+    //  Env updates existing keys (no duplicates)
     // ──────────────────────────────────────────────────────────
 
     #[Test]
     public function install_updates_existing_env_keys(): void
     {
-        // Pre-populate .env with existing keys
         File::put($this->envPath, "APP_NAME=TestApp\nAI_PROVIDER=claude\nOPENAI_API_KEY=old-key\n");
 
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'new-key-123')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'new-key',
+            'no',
+            '',
+            '',
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-        $envContent = File::get($this->envPath);
-        // Should update existing key, not duplicate
-        $this->assertStringContainsString('AI_PROVIDER=openai', $envContent);
-        $this->assertStringContainsString('OPENAI_API_KEY=new-key-123', $envContent);
-        $this->assertStringNotContainsString('AI_PROVIDER=claude', $envContent);
-        $this->assertStringNotContainsString('OPENAI_API_KEY=old-key', $envContent);
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_PROVIDER=openai', $env);
+        $this->assertStringContainsString('OPENAI_API_KEY=new-key', $env);
+        $this->assertStringNotContainsString('AI_PROVIDER=claude', $env);
+        $this->assertStringNotContainsString('OPENAI_API_KEY=old-key', $env);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Custom output language
+    // ──────────────────────────────────────────────────────────
+
+    #[Test]
+    public function install_custom_language(): void
+    {
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            'Arabic',   // custom language
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
+
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('AI_OUTPUT_LANGUAGE=Arabic', $env);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    //  Multiselect default rendering — THE bug scenario
+    //
+    //  Pressing Enter on the multiselect channel choice triggers
+    //  SymfonyQuestionHelper::writePrompt() to render the default.
+    //  Before the fix (default = 'log' string), Symfony did
+    //  $choices['log'] on a numeric-keyed array → Undefined array
+    //  key → infinite retry loop. With the fix (default = 0),
+    //  $choices[0] resolves correctly.
+    //
+    //  This test sends empty input ('') for the channel choice,
+    //  forcing Symfony to use and RENDER the default value.
+    // ──────────────────────────────────────────────────────────
+
+    #[Test]
+    public function install_multiselect_default_renders_without_errors(): void
+    {
+        [$exit, $output, $env] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '',     // accept default channel — exercises writePrompt() default rendering
+            'yes',
+            'yes',
+            'no',
+        ]);
+
+        $this->assertCleanInstall($exit, $output);
+        $this->assertStringContainsString('PUBLISHER_CHANNELS=log', $env);
     }
 
     // ──────────────────────────────────────────────────────────
@@ -428,146 +640,20 @@ class InstallCommandTest extends TestCase
     // ──────────────────────────────────────────────────────────
 
     #[Test]
-    public function install_accepts_force_flag(): void
+    public function install_with_force_flag(): void
     {
-        $this->artisan('scribe:install', ['--force' => true])
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-force-test')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
-    }
+        [$exit, $output] = $this->runInstall([
+            '0',
+            'sk-key',
+            'no',
+            '',
+            '',
+            '0',
+            'yes',
+            'yes',
+            'no',
+        ]);
 
-    // ──────────────────────────────────────────────────────────
-    //  Image provider same as text provider (no extra config)
-    // ──────────────────────────────────────────────────────────
-
-    #[Test]
-    public function install_with_same_image_and_text_provider_skips_duplicate_config(): void
-    {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-test-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'yes')
-            ->expectsChoice('Image generation provider', 'openai', ['openai', 'gemini', 'piapi'])
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
-
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_IMAGE_PROVIDER=openai', $envContent);
-    }
-
-    // ──────────────────────────────────────────────────────────
-    //  Image provider different from text provider
-    // ──────────────────────────────────────────────────────────
-
-    #[Test]
-    public function install_with_different_image_provider_prompts_credentials(): void
-    {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'claude', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('Anthropic API key', 'sk-ant-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'yes')
-            ->expectsChoice('Image generation provider', 'openai', ['openai', 'gemini', 'piapi'])
-            ->expectsQuestion('OpenAI API key', 'sk-openai-for-images')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'claude-sonnet-4-20250514')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
-
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_PROVIDER=claude', $envContent);
-        $this->assertStringContainsString('ANTHROPIC_API_KEY=sk-ant-key', $envContent);
-        $this->assertStringContainsString('AI_IMAGE_PROVIDER=openai', $envContent);
-        $this->assertStringContainsString('OPENAI_API_KEY=sk-openai-for-images', $envContent);
-    }
-
-    // ──────────────────────────────────────────────────────────
-    //  Custom language
-    // ──────────────────────────────────────────────────────────
-
-    #[Test]
-    public function install_accepts_custom_language(): void
-    {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-key')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'no')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'Arabic')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'no')
-            ->assertSuccessful();
-
-        $envContent = File::get($this->envPath);
-        $this->assertStringContainsString('AI_OUTPUT_LANGUAGE=Arabic', $envContent);
-    }
-
-    // ──────────────────────────────────────────────────────────
-    //  Full end-to-end with all channels
-    // ──────────────────────────────────────────────────────────
-
-    #[Test]
-    public function install_full_configuration_with_all_channels(): void
-    {
-        $this->artisan('scribe:install')
-            ->expectsChoice('Which AI provider will you use?', 'openai', ['openai', 'claude', 'gemini', 'ollama'])
-            ->expectsQuestion('OpenAI API key', 'sk-full-test')
-            ->expectsConfirmation('Use a separate provider for image generation?', 'yes')
-            ->expectsChoice('Image generation provider', 'piapi', ['openai', 'gemini', 'piapi'])
-            ->expectsQuestion('PiAPI API key', 'piapi-full-test')
-            ->expectsQuestion('Content model (leave blank for provider default)', 'gpt-4o-mini')
-            ->expectsQuestion('Output language', 'English')
-            ->expectsChoice('Which channels do you want to publish to? (comma-separated)', ['log', 'telegram', 'facebook', 'blogger', 'wordpress'], ['log', 'telegram', 'facebook', 'blogger', 'wordpress'])
-            ->expectsQuestion('Telegram bot token', 'bot:T')
-            ->expectsQuestion('Telegram chat/channel ID', '-100')
-            ->expectsQuestion('Facebook Page ID', 'fb-id')
-            ->expectsQuestion('Facebook Page Access Token', 'fb-token')
-            ->expectsQuestion('Blogger Blog ID', 'blog-id')
-            ->expectsQuestion('Blogger API key', 'blog-key')
-            ->expectsQuestion('WordPress site URL (e.g. https://myblog.com)', 'https://wp.test')
-            ->expectsQuestion('WordPress username', 'admin')
-            ->expectsQuestion('WordPress application password', 'wp-pass')
-            ->expectsConfirmation('Enable pipeline run tracking? (enables resume on failure)', 'yes')
-            ->expectsConfirmation('Enable image optimization?', 'yes')
-            ->expectsConfirmation('Enable Telegram approval extension?', 'yes')
-            ->assertSuccessful();
-
-        $envContent = File::get($this->envPath);
-
-        // Providers
-        $this->assertStringContainsString('AI_PROVIDER=openai', $envContent);
-        $this->assertStringContainsString('OPENAI_API_KEY=sk-full-test', $envContent);
-        $this->assertStringContainsString('AI_IMAGE_PROVIDER=piapi', $envContent);
-        $this->assertStringContainsString('PIAPI_API_KEY=piapi-full-test', $envContent);
-
-        // Channels
-        $this->assertStringContainsString('PUBLISHER_CHANNELS=log,telegram,facebook,blogger,wordpress', $envContent);
-        $this->assertStringContainsString('TELEGRAM_BOT_TOKEN=bot:T', $envContent);
-        $this->assertStringContainsString('TELEGRAM_CHAT_ID=-100', $envContent);
-        $this->assertStringContainsString('FACEBOOK_PAGE_ID=fb-id', $envContent);
-        $this->assertStringContainsString('BLOGGER_BLOG_ID=blog-id', $envContent);
-        $this->assertStringContainsString('WORDPRESS_URL=https://wp.test', $envContent);
-        $this->assertStringContainsString('WORDPRESS_USERNAME=admin', $envContent);
-
-        // Pipeline
-        $this->assertStringContainsString('PIPELINE_TRACK_RUNS=true', $envContent);
-        $this->assertStringContainsString('IMAGE_OPTIMIZE=true', $envContent);
-        $this->assertStringContainsString('TELEGRAM_APPROVAL_ENABLED=true', $envContent);
+        $this->assertCleanInstall($exit, $output);
     }
 }

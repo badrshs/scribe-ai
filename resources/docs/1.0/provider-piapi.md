@@ -48,9 +48,9 @@ Provider-specific config in `config/scribe-ai.php`:
 
 PiAPI uses an asynchronous task-based workflow:
 
-1. **Create task** → `POST /api/flux/v1/run` with prompt, model, width, height
+1. **Create task** → `POST /api/v1/task` with prompt, model (`Qubico/flux1-schnell`), width, height
 2. **Receive task_id** → PiAPI queues the generation
-3. **Poll for result** → `GET /api/flux/v1/task/{task_id}` until status is `completed`
+3. **Poll for result** → `GET /api/v1/task/{task_id}` until status is `completed`
 4. **Download image** → Fetch the raw image from the returned URL
 
 ```
