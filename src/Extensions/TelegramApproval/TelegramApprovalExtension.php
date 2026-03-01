@@ -40,7 +40,7 @@ class TelegramApprovalExtension implements Extension
             // Commands are registered via the service provider
         }
 
-        // Load webhook route — URL is auto-resolved from APP_URL if not set
+        // Load webhook route - URL is auto-resolved from APP_URL if not set
         $routeFile = __DIR__ . '/../../../routes/telegram-webhook.php';
 
         if (file_exists($routeFile)) {

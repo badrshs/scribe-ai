@@ -42,7 +42,7 @@ class PipelineEventsTest extends TestCase
             'text-to-image' => 'A test image prompt',
             'description' => 'Test description.',
             'content' => '<p>Rewritten content</p>',
-            'meta_title' => 'Test — SEO',
+            'meta_title' => 'Test - SEO',
             'meta_description' => 'Meta description.',
             'category_id' => 1,
             'tags' => ['test'],

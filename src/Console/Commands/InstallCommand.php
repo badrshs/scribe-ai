@@ -24,7 +24,7 @@ class InstallCommand extends Command
     public function handle(): int
     {
         $this->newLine();
-        $this->components->info('Scribe AI — Installation Wizard');
+        $this->components->info('Scribe AI - Installation Wizard');
         $this->newLine();
 
         $this->publishAssets();
@@ -177,7 +177,7 @@ class InstallCommand extends Command
             true,
         );
 
-        // Normalise — choice() may return a string or array depending on driver
+        // Normalise - choice() may return a string or array depending on driver
         $channels = is_array($channels) ? $channels : [$channels];
         $channels = array_values(array_filter($channels, fn($ch) => in_array($ch, $available, true)));
 
@@ -287,7 +287,7 @@ class InstallCommand extends Command
         $envPath = $this->laravel->basePath('.env');
 
         if (! File::exists($envPath)) {
-            $this->warn('.env file not found — skipping env variable injection.');
+            $this->warn('.env file not found - skipping env variable injection.');
             $this->line('  Add these to your .env manually:');
             foreach ($this->envLines as $key => $value) {
                 $this->line("  <comment>{$key}={$value}</comment>");

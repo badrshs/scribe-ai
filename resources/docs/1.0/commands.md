@@ -148,15 +148,31 @@ $ php artisan scribe:resume 7
 <a name="telegram-set-webhook"></a>
 ## scribe:telegram-set-webhook
 
-Register a Telegram webhook so the bot receives approval/rejection callbacks.
+Set, remove, or inspect the Telegram webhook for approval callbacks.
 
 ```bash
+# Set the webhook
 php artisan scribe:telegram-set-webhook
+
+# Show current webhook status
+php artisan scribe:telegram-set-webhook --info
+
+# Remove the webhook (switch to polling mode)
+php artisan scribe:telegram-set-webhook --remove
 ```
 
-This sets the webhook URL to your application's callback route. The URL is built from `APP_URL` plus the route registered by the Telegram Approval extension.
+The webhook URL is resolved in this order:
+1. `TELEGRAM_WEBHOOK_URL` env variable (explicit)
+2. `APP_URL` + `TELEGRAM_WEBHOOK_PATH` (auto-resolved)
 
-> {info} The webhook is automatically registered when the Telegram Approval extension boots, so this command is mostly useful for re-registering after a URL change.
+### Options
+
+| Option | Description |
+|---|---|
+| `--info` | Display current webhook status from Telegram (URL, pending updates, last error) |
+| `--remove` | Remove the webhook and switch back to polling mode |
+
+> {info} Use `--info` to debug webhook issues. It shows the registered URL, any errors Telegram reported, and whether the URL matches your config.
 
 <a name="telegram-fetch-and-send"></a>
 ## scribe:telegram-fetch-and-send

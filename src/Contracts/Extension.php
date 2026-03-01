@@ -14,7 +14,7 @@ use Illuminate\Contracts\Foundation\Application;
  *     app(\Badr\ScribeAi\Services\ExtensionManager::class)
  *         ->register(new MyExtension());
  *
- * Extensions are booted lazily — the boot() method is called only
+ * Extensions are booted lazily - the boot() method is called only
  * when isEnabled() returns true.
  */
 interface Extension

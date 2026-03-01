@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * PiAPI provider (piapi.ai) — Flux image generation.
+ * PiAPI provider (piapi.ai) - Flux image generation.
  *
  * PiAPI is an image-only provider using the Flux model.
  * It does NOT support text/chat completions.
@@ -32,7 +32,7 @@ class PiApiProvider implements AiProvider
     }
 
     /**
-     * Chat is not supported — PiAPI is image-only.
+     * Chat is not supported - PiAPI is image-only.
      */
     public function chat(array $messages, string $model, int $maxTokens = 4096, bool $jsonMode = false): array
     {

@@ -27,7 +27,7 @@ class CreateArticleStage implements Pipe
         $pipeline->reportProgress('Create Article', 'started');
 
         if ($payload->rejected) {
-            $pipeline->reportProgress('Create Article', 'skipped — content was rejected');
+            $pipeline->reportProgress('Create Article', 'skipped - content was rejected');
 
             return $payload;
         }
@@ -58,7 +58,7 @@ class CreateArticleStage implements Pipe
             'tags_count' => count($payload->tags),
         ]);
 
-        $pipeline->reportProgress('Create Article', 'completed — ID #' . $article->id);
+        $pipeline->reportProgress('Create Article', 'completed - ID #' . $article->id);
 
         $newPayload = $payload->with(['article' => $article]);
 

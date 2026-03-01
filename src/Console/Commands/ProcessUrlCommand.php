@@ -48,7 +48,7 @@ class ProcessUrlCommand extends Command
 
         if (! $silent) {
             $this->newLine();
-            $this->components->info("Scribe AI — Processing URL");
+            $this->components->info("Scribe AI - Processing URL");
             $this->line("  <comment>URL:</comment> {$url}");
             $this->newLine();
         }

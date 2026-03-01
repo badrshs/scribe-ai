@@ -29,14 +29,14 @@ class GenerateImageStage implements Pipe
 
         if ($payload->imagePath) {
             Log::info('GenerateImageStage: skipped (image already present)');
-            $pipeline->reportProgress('Generate Image', 'skipped — image already present');
+            $pipeline->reportProgress('Generate Image', 'skipped - image already present');
 
             return $next($payload);
         }
 
         if (! $payload->imagePrompt) {
             Log::info('GenerateImageStage: skipped (no image prompt)');
-            $pipeline->reportProgress('Generate Image', 'skipped — no image prompt');
+            $pipeline->reportProgress('Generate Image', 'skipped - no image prompt');
 
             return $next($payload);
         }
@@ -56,7 +56,7 @@ class GenerateImageStage implements Pipe
             Log::warning('GenerateImageStage: image generation failed', [
                 'error' => $e->getMessage(),
             ]);
-            $pipeline->reportProgress('Generate Image', 'failed — ' . $e->getMessage());
+            $pipeline->reportProgress('Generate Image', 'failed - ' . $e->getMessage());
 
             if (config('scribe-ai.pipeline.halt_on_error', true)) {
                 return $payload->with([

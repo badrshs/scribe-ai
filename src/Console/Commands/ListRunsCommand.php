@@ -35,11 +35,11 @@ class ListRunsCommand extends Command
         $rows = $runs->map(fn(PipelineRun $run) => [
             $run->id,
             $this->statusBadge($run->status->value),
-            mb_substr($run->source_url ?? '—', 0, 50),
-            $run->current_stage_name ?? '—',
-            $run->article_id ?? '—',
-            $run->error_stage ? "{$run->error_stage}: " . mb_substr($run->error_message ?? '', 0, 40) : '—',
-            $run->created_at?->diffForHumans() ?? '—',
+            mb_substr($run->source_url ?? '-', 0, 50),
+            $run->current_stage_name ?? '-',
+            $run->article_id ?? '-',
+            $run->error_stage ? "{$run->error_stage}: " . mb_substr($run->error_message ?? '', 0, 40) : '-',
+            $run->created_at?->diffForHumans() ?? '-',
         ])->toArray();
 
         $this->table(

@@ -243,6 +243,24 @@ class TelegramApprovalService
     }
 
     /**
+     * Get current webhook info from Telegram.
+     *
+     * Returns the raw result array, or null on failure.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getWebhookInfo(): ?array
+    {
+        $response = Http::timeout(10)->post("{$this->baseUrl}/getWebhookInfo");
+
+        if ($response->failed()) {
+            return null;
+        }
+
+        return $response->json('result');
+    }
+
+    /**
      * Parse callback data string into action + staged_content_id.
      *
      * @return array{action: string, staged_content_id: int}|null

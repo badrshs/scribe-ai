@@ -31,7 +31,7 @@ class TestableInstallCommand extends InstallCommand
  * Uses Symfony's CommandTester instead of Laravel's expectsChoice /
  * expectsQuestion mocks.  This exercises the REAL Symfony console
  * rendering pipeline (writePrompt → doAsk → validateAttempts) and
- * catches bugs that mocks silently skip — such as the multiselect
+ * catches bugs that mocks silently skip - such as the multiselect
  * ChoiceQuestion default-index rendering bug in writePrompt().
  */
 class InstallCommandTest extends TestCase
@@ -79,14 +79,14 @@ class InstallCommandTest extends TestCase
     }
 
     /**
-     * Assert the install ran cleanly — no Symfony rendering errors, no [ERROR] blocks.
+     * Assert the install ran cleanly - no Symfony rendering errors, no [ERROR] blocks.
      */
     protected function assertCleanInstall(int $exitCode, string $display): void
     {
         $this->assertStringNotContainsString(
             'Undefined array key',
             $display,
-            'Symfony rendering error detected — likely a ChoiceQuestion default bug',
+            'Symfony rendering error detected - likely a ChoiceQuestion default bug',
         );
         $this->assertStringNotContainsString('[ERROR]', $display, 'Error block found in command output');
         $this->assertStringContainsString('installed successfully', $display, 'Success message missing');
@@ -264,7 +264,7 @@ class InstallCommandTest extends TestCase
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Same image provider as text — no extra config prompt
+    //  Same image provider as text - no extra config prompt
     // ──────────────────────────────────────────────────────────
 
     #[Test]
@@ -425,7 +425,7 @@ class InstallCommandTest extends TestCase
     }
 
     // ──────────────────────────────────────────────────────────
-    //  All channels — comprehensive end-to-end
+    //  All channels - comprehensive end-to-end
     // ──────────────────────────────────────────────────────────
 
     #[Test]
@@ -603,7 +603,7 @@ class InstallCommandTest extends TestCase
     }
 
     // ──────────────────────────────────────────────────────────
-    //  Multiselect default rendering — THE bug scenario
+    //  Multiselect default rendering - THE bug scenario
     //
     //  Pressing Enter on the multiselect channel choice triggers
     //  SymfonyQuestionHelper::writePrompt() to render the default.
@@ -625,7 +625,7 @@ class InstallCommandTest extends TestCase
             'no',
             '',
             '',
-            '',     // accept default channel — exercises writePrompt() default rendering
+            '',     // accept default channel - exercises writePrompt() default rendering
             'yes',
             'yes',
             'no',

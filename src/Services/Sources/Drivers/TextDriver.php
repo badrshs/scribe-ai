@@ -6,7 +6,7 @@ use Badr\ScribeAi\Contracts\ContentSource;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Accepts raw text or markdown content directly — no network call.
+ * Accepts raw text or markdown content directly - no network call.
  *
  * Useful for testing, bulk imports, or when the content has already
  * been fetched externally and you just need to push it through the

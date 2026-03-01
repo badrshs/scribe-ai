@@ -86,7 +86,7 @@ class GeminiProvider implements AiProvider
 
     public function generateImage(string $prompt, string $model, string $size, string $quality): ?string
     {
-        // Gemini Imagen — uses the same generateContent endpoint with image generation mode
+        // Gemini Imagen - uses the same generateContent endpoint with image generation mode
         $payload = [
             'contents' => [
                 [

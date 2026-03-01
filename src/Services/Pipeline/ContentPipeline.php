@@ -183,7 +183,7 @@ class ContentPipeline
                 // Snapshot at the state *before* the failed stage so resume replays it
                 $run?->markStageCompleted($i, $current->toSnapshot());
 
-                $this->reportProgress($stageName, 'failed — ' . $e->getMessage());
+                $this->reportProgress($stageName, 'failed - ' . $e->getMessage());
 
                 if (config('scribe-ai.pipeline.halt_on_error', true)) {
                     $current = $current->with([

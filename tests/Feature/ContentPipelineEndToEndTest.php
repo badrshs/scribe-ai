@@ -52,7 +52,7 @@ class ContentPipelineEndToEndTest extends TestCase
             'text-to-image' => 'A futuristic illustration of technology in daily life',
             'description' => 'A short summary of the rewritten article.',
             'content' => '<div><h2>Rewritten Content</h2><p>This is the AI-rewritten article body.</p></div>',
-            'meta_title' => 'Rewritten Test Title — SEO',
+            'meta_title' => 'Rewritten Test Title - SEO',
             'meta_description' => 'A concise SEO meta description for the rewritten article.',
             'category_id' => 1,
             'tags' => ['technology', 'ai', 'innovation'],
@@ -387,7 +387,7 @@ class ContentPipelineEndToEndTest extends TestCase
         $this->seedCategories();
         $this->bindMocks();
 
-        // Make image generator throw — stage catches it and rejects (halt_on_error)
+        // Make image generator throw - stage catches it and rejects (halt_on_error)
         $imageGen = Mockery::mock(ImageGenerator::class);
         $imageGen->shouldReceive('generate')
             ->andThrow(new \RuntimeException('GPU out of memory'));
@@ -466,7 +466,7 @@ class ContentPipelineEndToEndTest extends TestCase
             ],
         ]);
 
-        // Resume — should pick up from stage index 2 with the working stage
+        // Resume - should pick up from stage index 2 with the working stage
         $pipeline2 = app(ContentPipeline::class);
         $result = $pipeline2->resume($run);
 
@@ -522,7 +522,7 @@ class ContentPipelineEndToEndTest extends TestCase
 }
 
 /**
- * A stub stage that always throws — used to test uncaught failure tracking.
+ * A stub stage that always throws - used to test uncaught failure tracking.
  */
 class FailingStageStub implements \Badr\ScribeAi\Contracts\Pipe
 {

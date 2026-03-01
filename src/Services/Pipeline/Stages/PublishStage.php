@@ -31,7 +31,7 @@ class PublishStage implements Pipe
 
         if (! $payload->article) {
             Log::info('PublishStage: skipped (no article to publish)');
-            $pipeline->reportProgress('Publish', 'skipped — no article to publish');
+            $pipeline->reportProgress('Publish', 'skipped - no article to publish');
 
             return $next($payload);
         }
@@ -49,7 +49,7 @@ class PublishStage implements Pipe
                 'success_count' => $successCount,
             ]);
 
-            $pipeline->reportProgress('Publish', 'completed — ' . $successCount . '/' . count($results) . ' channels succeeded');
+            $pipeline->reportProgress('Publish', 'completed - ' . $successCount . '/' . count($results) . ' channels succeeded');
 
             foreach ($results as $channel => $result) {
                 event(new ArticlePublished($payload, $result, $channel));
@@ -62,7 +62,7 @@ class PublishStage implements Pipe
                 'error' => $e->getMessage(),
             ]);
 
-            $pipeline->reportProgress('Publish', 'failed — ' . $e->getMessage());
+            $pipeline->reportProgress('Publish', 'failed - ' . $e->getMessage());
 
             if (config('scribe-ai.pipeline.halt_on_error', true)) {
                 return $payload->with([

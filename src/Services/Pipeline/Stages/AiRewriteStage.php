@@ -36,7 +36,7 @@ class AiRewriteStage implements Pipe
 
         if (! $content) {
             Log::warning('AiRewriteStage: no content to process, skipping');
-            $pipeline->reportProgress('AI Rewrite', 'skipped — no content to process');
+            $pipeline->reportProgress('AI Rewrite', 'skipped - no content to process');
 
             return $next($payload);
         }
@@ -61,7 +61,7 @@ class AiRewriteStage implements Pipe
                 'reasons' => $reasons,
             ]);
 
-            $pipeline->reportProgress('AI Rewrite', 'rejected — ' . $reasonText);
+            $pipeline->reportProgress('AI Rewrite', 'rejected - ' . $reasonText);
 
             return $payload->with([
                 'rejected' => true,
@@ -77,7 +77,7 @@ class AiRewriteStage implements Pipe
             'tags_count' => count($result['tags'] ?? []),
         ]);
 
-        $pipeline->reportProgress('AI Rewrite', 'completed — "' . ($result['title'] ?? 'untitled') . '"');
+        $pipeline->reportProgress('AI Rewrite', 'completed - "' . ($result['title'] ?? 'untitled') . '"');
 
         $newPayload = $payload->with([
             'title' => $result['title'] ?? $payload->title,
@@ -255,7 +255,7 @@ PROMPT;
             return $configCategories;
         }
 
-        // 4. No categories available — the prompt will adapt
+        // 4. No categories available - the prompt will adapt
         return [];
     }
 
@@ -265,7 +265,7 @@ PROMPT;
      */
     protected function resolveCategory(array $result, array $categories): ?int
     {
-        // No categories configured — accept whatever the AI returns (or null)
+        // No categories configured - accept whatever the AI returns (or null)
         if (empty($categories)) {
             $id = $result['category_id'] ?? null;
 

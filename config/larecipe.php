@@ -58,14 +58,14 @@ return [
 
     'seo' => [
         'author'      => 'Badr',
-        'description' => 'Scribe AI — Turn any URL into a published article with AI. Full documentation.',
+        'description' => 'Scribe AI - Turn any URL into a published article with AI. Full documentation.',
         'keywords'    => 'laravel, ai, content, publishing, pipeline, scribe',
         'og'          => [
             'title'       => 'Scribe AI Documentation',
             'type'        => 'article',
             'url'         => '',
             'image'       => '',
-            'description' => 'Scribe AI — A Laravel package that turns any URL into a published article.',
+            'description' => 'Scribe AI - A Laravel package that turns any URL into a published article.',
         ],
     ],
 

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * HTTP controller for receiving Telegram webhook callbacks.
  *
- * Alternative to the polling command — use this when you have a publicly
+ * Alternative to the polling command - use this when you have a publicly
  * accessible URL that Telegram can POST callbacks to.
  *
  * Setup:

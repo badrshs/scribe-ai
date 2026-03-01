@@ -41,7 +41,7 @@ class RssReviewCommand extends Command
         $silent = (bool) $this->option('silent');
 
         if (! $silent) {
-            $this->components->info('Scribe AI — RSS Review');
+            $this->components->info('Scribe AI - RSS Review');
             $this->line("  <comment>Feed:</comment>  {$feedUrl}");
             $this->line("  <comment>Days:</comment>  {$days}    <comment>Limit:</comment> {$limit}    <comment>AI:</comment> " . ($useAi ? 'yes' : 'no'));
             $this->newLine();
@@ -111,7 +111,7 @@ class RssReviewCommand extends Command
 
         if (empty($entries)) {
             if (! $silent) {
-                $this->components->info('All entries already staged — nothing new.');
+                $this->components->info('All entries already staged - nothing new.');
             }
 
             return self::SUCCESS;
@@ -163,7 +163,7 @@ class RssReviewCommand extends Command
                 ]);
 
                 if (! $silent) {
-                    $this->line("  <fg=red>✗</> Failed: {$staged->title} — {$e->getMessage()}");
+                    $this->line("  <fg=red>✗</> Failed: {$staged->title} - {$e->getMessage()}");
                 }
             }
 
@@ -198,7 +198,7 @@ class RssReviewCommand extends Command
 You are a content curation assistant. You will receive a numbered list of article titles.
 For each article, respond with a JSON array of objects having these keys:
 - "index" (1-based, matching the input numbering)
-- "relevant" (boolean — is this article worth publishing?)
+- "relevant" (boolean - is this article worth publishing?)
 - "summary" (1-2 sentence summary based only on the title)
 - "category" (a single-word topic category, e.g. "Technology", "Health", "Business")
 

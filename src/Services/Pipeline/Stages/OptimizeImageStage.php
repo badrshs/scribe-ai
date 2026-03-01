@@ -27,14 +27,14 @@ class OptimizeImageStage implements Pipe
         $pipeline->reportProgress('Optimise Image', 'started');
 
         if (! $payload->imagePath) {
-            $pipeline->reportProgress('Optimise Image', 'skipped — no image to optimise');
+            $pipeline->reportProgress('Optimise Image', 'skipped - no image to optimise');
 
             return $next($payload);
         }
 
         if (! config('scribe-ai.images.optimize', true)) {
             Log::info('OptimizeImageStage: optimization disabled via config');
-            $pipeline->reportProgress('Optimise Image', 'skipped — disabled in config');
+            $pipeline->reportProgress('Optimise Image', 'skipped - disabled in config');
 
             return $next($payload);
         }
@@ -59,7 +59,7 @@ class OptimizeImageStage implements Pipe
             Log::warning('OptimizeImageStage: optimization failed', [
                 'error' => $e->getMessage(),
             ]);
-            $pipeline->reportProgress('Optimise Image', 'failed — ' . $e->getMessage());
+            $pipeline->reportProgress('Optimise Image', 'failed - ' . $e->getMessage());
 
             if (config('scribe-ai.pipeline.halt_on_error', true)) {
                 return $payload->with([

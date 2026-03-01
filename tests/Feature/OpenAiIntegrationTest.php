@@ -183,7 +183,7 @@ class OpenAiIntegrationTest extends TestCase
     #[Test]
     public function ai_rewrite_works_without_categories(): void
     {
-        // No categories at all — should still work
+        // No categories at all - should still work
         $sampleContent = <<<'TEXT'
         How to Build a Simple REST API with Node.js
 

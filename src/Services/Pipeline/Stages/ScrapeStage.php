@@ -31,14 +31,14 @@ class ScrapeStage implements Pipe
 
         if ($payload->rawContent) {
             Log::info('ScrapeStage: skipped (content already present)');
-            $pipeline->reportProgress('Scrape', 'skipped — content already present');
+            $pipeline->reportProgress('Scrape', 'skipped - content already present');
 
             return $next($payload);
         }
 
         if (! $payload->sourceUrl) {
             Log::warning('ScrapeStage: no source URL, skipping');
-            $pipeline->reportProgress('Scrape', 'skipped — no source URL');
+            $pipeline->reportProgress('Scrape', 'skipped - no source URL');
 
             return $next($payload);
         }
@@ -70,7 +70,7 @@ class ScrapeStage implements Pipe
             $overrides['extra'] = array_merge($payload->extra, ['source_meta' => $result['meta']]);
         }
 
-        $pipeline->reportProgress('Scrape', "completed — {$contentLength} chars via {$resolvedDriver} driver");
+        $pipeline->reportProgress('Scrape', "completed - {$contentLength} chars via {$resolvedDriver} driver");
 
         $newPayload = $payload->with($overrides);
 

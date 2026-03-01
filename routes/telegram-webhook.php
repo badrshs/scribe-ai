@@ -23,5 +23,4 @@ $path = config(
 );
 
 Route::post($path, TelegramWebhookController::class)
-    ->middleware('api')
     ->name('scribe.telegram.webhook');

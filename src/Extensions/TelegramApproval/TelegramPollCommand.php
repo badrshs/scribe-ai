@@ -33,7 +33,7 @@ class TelegramPollCommand extends Command
         $silent = (bool) $this->option('silent');
 
         if (! $silent) {
-            $this->components->info('Scribe AI — Telegram Approval Poller');
+            $this->components->info('Scribe AI - Telegram Approval Poller');
 
             if ($once) {
                 $this->line('  <fg=gray>Mode: single pass (--once)</>');
@@ -43,6 +43,9 @@ class TelegramPollCommand extends Command
 
             $this->newLine();
         }
+
+        // Warn if a webhook is active - polling disables it
+        $this->warnIfWebhookActive($telegram, $silent);
 
         $offset = 0;
         $processed = 0;
@@ -103,5 +106,40 @@ class TelegramPollCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Check if a webhook is active and warn the user.
+     *
+     * Telegram's getUpdates API call automatically disables any active webhook.
+     * This warning prevents accidentally breaking a working webhook setup.
+     */
+    protected function warnIfWebhookActive(TelegramApprovalService $telegram, bool $silent): void
+    {
+        if ($silent) {
+            return;
+        }
+
+        try {
+            $info = $telegram->getWebhookInfo();
+            $url = $info['url'] ?? '';
+
+            if (! empty($url)) {
+                $this->components->warn(
+                    "An active webhook is set: {$url}"
+                );
+                $this->line('  <fg=yellow>Polling will automatically disable the webhook.</>');
+                $this->line('  <fg=gray>To keep using webhooks, press Ctrl+C now.</>');
+                $this->newLine();
+
+                if (! $this->confirm('Continue with polling?', true)) {
+                    $this->components->info('Aborted. Webhook remains active.');
+
+                    exit(self::SUCCESS);
+                }
+            }
+        } catch (\Throwable) {
+            // Can't check webhook status - proceed anyway
+        }
     }
 }
